@@ -45,7 +45,7 @@ Quantities of yarn are in **skeins**, stored as `numeric(6,2)` (e.g. 0.25).
 | name | text, required | "T-rex" |
 | designer | text | |
 | url | text | link to the pattern |
-| hook_size_mm | numeric(3,1), nullable | 1.0–12.0 in 0.5 steps; shown as "4.0 mm" |
+| hook_size_mm | numeric(3,1), nullable | **recommended** hook for the pattern; 1.0–12.0 in 0.5 steps |
 | yarn_weight | yarn_weight enum | |
 | notes | text | |
 | pdf_path | text | path in `pattern-pdfs` bucket |
@@ -76,7 +76,7 @@ Every new user starts with six types: Amigurumi, Clothes, Accessories, Bag, Home
 | status | enum `idea`, `in_progress`, `finished`, `frogged` | default `idea` |
 | start_date | date | |
 | finish_date | date | set to today when status becomes `finished` and it is empty |
-| hook_size_mm | numeric(3,1), nullable | 1.0–12.0 in 0.5 steps; shown as "4.0 mm" |
+| hook_size_mm | numeric(3,1), nullable | hook **used** for this project; copied from the pattern at start, then editable; 1.0–12.0 in 0.5 steps |
 | notes | text | |
 
 ### project_photos
@@ -147,11 +147,11 @@ The view uses `security_invoker = true` so row-level security applies.
 ### Database function: `start_project_from_pattern(pattern_id uuid) returns uuid`
 In one transaction:
 
-1. Create a project: name = pattern name, `pattern_id`, status `in_progress`, `start_date` today, `hook_size_mm` from pattern.
+1. Create a project: name = pattern name, `pattern_id`, status `in_progress`, `start_date` today, `hook_size_mm` copied from the pattern's recommended size.
 2. Copy parts in order, including `total_rows`. A part with `count = 1` keeps its name; a part with `count = n > 1` becomes `n` parts named "Leg 1" … "Leg n".
 3. Return the new project id.
 
-Later edits to the project's parts never change the pattern.
+Later edits to the project's parts or hook size never change the pattern, and changing the pattern's recommended hook never changes existing projects.
 
 ## Screens
 
@@ -163,7 +163,7 @@ Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin 
 
 **New project** — search box, type filter chips, grid of patterns (tap one to start a project from it) and a **Start a blank project** button.
 
-**Project page** — header (status, dates, hook — same dropdown as the pattern form, link to pattern); parts list with ▶ start timer, ✓ done and "Row 12/18" per part; add, rename, reorder, delete parts; yarn summary per yarn (planned vs used) with "plan yarn" action; photos; notes.
+**Project page** — header (status, dates, **hook used** — same dropdown as the pattern form, shown as "hook 4.0 mm (pattern: 3.5 mm)" when it differs from the pattern's recommendation; link to pattern); parts list with ▶ start timer, ✓ done and "Row 12/18" per part; add, rename, reorder, delete parts; yarn summary per yarn (planned vs used) with "plan yarn" action; photos; notes.
 
 **Part page** — row counter (large number with − and +, tap to type; shows "/ total" when `total_rows` is set) and resume note; time sessions (list, add manual, edit, delete); yarn used (pick a stash yarn, enter skeins).
 
@@ -171,7 +171,7 @@ Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin 
 
 **Pattern page** — details, template parts, embedded PDF viewer, **Start project** button.
 
-**Pattern form** — name, type (chips; tap the selected one again to clear; "+ New type"), designer, link, hook (dropdown: "—", 1.0 mm … 12.0 mm in 0.5 mm steps), weight, notes, parts with ×count and optional rows, attach PDF. Phase 2 adds "Fill from PDF".
+**Pattern form** — name, type (chips; tap the selected one again to clear; "+ New type"), designer, link, **recommended hook** (dropdown: "—", 1.0 mm … 12.0 mm in 0.5 mm steps), weight, notes, parts with ×count and optional rows, attach PDF. Phase 2 adds "Fill from PDF".
 
 **Stash** — grid of yarn cards (photo, name, color, free / owned). Filters: weight, fiber. Badge "low" when 0 < free < 1, "out" when free ≤ 0.
 
@@ -256,7 +256,7 @@ Each feature folder holds its screens, its data hooks (queries and mutations) an
 
 Test-driven development throughout.
 
-- **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges, row counter (no decrement below 0, "Row x/y" label), hook sizes (`hookSizeOptions()` returns the 23 values 1.0…12.0, `formatHook(3.5)` → "3.5 mm", `formatHook(null)` → "—").
+- **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges, row counter (no decrement below 0, "Row x/y" label), hook sizes (`hookSizeOptions()` returns the 23 values 1.0…12.0, `formatHook(3.5)` → "3.5 mm", `formatHook(null)` → "—", `hookLabel(project 4.0, pattern 3.5)` → "hook 4.0 mm (pattern: 3.5 mm)", same sizes → "hook 3.5 mm").
 - **Component (React Testing Library):** pattern form (parts with count and rows, type chips), pattern type filter, yarn usage entry, manual session entry, row counter.
 - **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, new user gets the six default pattern types, one-running-timer index, and RLS (a second user sees nothing).
 - **End-to-end (Playwright):** log in, create pattern, start project from it, time a part, record yarn, check the stash numbers.
