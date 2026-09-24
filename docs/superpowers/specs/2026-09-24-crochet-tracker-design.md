@@ -1,7 +1,7 @@
 # Crochet Tracker — Design
 
 Date: 2026-09-24
-Status: Approved design, pending spec review
+Status: Approved
 
 ## Purpose
 
