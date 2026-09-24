@@ -21,6 +21,7 @@ Core ideas:
 4. A pattern page shows how many times it was made, average time and average skeins.
 5. The app installs to a phone home screen and works in a desktop browser.
 6. After a break, the project page shows which row each part stopped at.
+7. The Patterns list can be filtered by pattern type in one tap.
 
 ## Scope
 
@@ -46,6 +47,15 @@ Quantities of yarn are in **skeins**, stored as `numeric(6,2)` (e.g. 0.25).
 | yarn_weight | yarn_weight enum | |
 | notes | text | |
 | pdf_path | text | path in `pattern-pdfs` bucket |
+| pattern_type_id | uuid, nullable | `on delete set null`; a pattern has at most one type |
+
+### pattern_types
+| Column | Type | Notes |
+|---|---|---|
+| name | text, required | "Amigurumi"; unique per user |
+| position | int, required | order of the filter chips |
+
+Every new user starts with six types: Amigurumi, Clothes, Accessories, Bag, Home, Baby (inserted by a trigger on `auth.users`). The user can add, rename, reorder and delete types; deleting a type leaves its patterns untyped.
 
 ### pattern_parts
 | Column | Type | Notes |
@@ -147,17 +157,19 @@ Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin 
 
 **Login** — email magic link.
 
-**Projects list** — grouped by status, `in_progress` first. Card: photo, name, parts done (3/7), total time. "+ New project" offers **From a pattern** (pick from list) or **Blank**.
+**Projects list** — grouped by status, `in_progress` first. Card: photo, name, parts done (3/7), total time. "+ New project" opens the **New project** screen.
+
+**New project** — search box, type filter chips, grid of patterns (tap one to start a project from it) and a **Start a blank project** button.
 
 **Project page** — header (status, dates, hook, link to pattern); parts list with ▶ start timer, ✓ done and "Row 12/18" per part; add, rename, reorder, delete parts; yarn summary per yarn (planned vs used) with "plan yarn" action; photos; notes.
 
 **Part page** — row counter (large number with − and +, tap to type; shows "/ total" when `total_rows` is set) and resume note; time sessions (list, add manual, edit, delete); yarn used (pick a stash yarn, enter skeins).
 
-**Patterns list** — name and stats (made N×, average time, average skeins).
+**Patterns list** — type filter chips ("All · 5", "Amigurumi · 2"…, one selected at a time; chips for types with no patterns are hidden), then cards: name, type label, parts / weight / hook, stats (made N×, average time, average skeins).
 
 **Pattern page** — details, template parts, embedded PDF viewer, **Start project** button.
 
-**Pattern form** — name, designer, link, hook, weight, notes, parts with ×count and optional rows, attach PDF. Phase 2 adds "Fill from PDF".
+**Pattern form** — name, type (chips; tap the selected one again to clear; "+ New type"), designer, link, hook, weight, notes, parts with ×count and optional rows, attach PDF. Phase 2 adds "Fill from PDF".
 
 **Stash** — grid of yarn cards (photo, name, color, free / owned). Filters: weight, fiber. Badge "low" when 0 < free < 1, "out" when free ≤ 0.
 
@@ -174,6 +186,32 @@ Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin 
 - The counter never goes below 0.
 - It may exceed `total_rows` (patterns are sometimes adjusted); the display then shows e.g. "Row 20/18".
 - Reaching `total_rows` does not tick ✓ done.
+
+## Visual design
+
+The approved mockup is the reference for layout: https://claude.ai/artifact/XwxHQ2Qk3YJK54R1mTSrwJ (10 phone screens plus the shared timer bar and tab bar).
+
+**Font:** Indie Flower (Google Fonts) for all text, titles included; single weight, sizes as in the mockup (base 16 px).
+
+**Colors:**
+
+| Token | Hex | Use |
+|---|---|---|
+| background | `#E4EEF9` | page background (pastel blue) |
+| surface | `#FFFFFF` | cards, lists, tab bar |
+| border | `#D3E0EE` | card borders; dividers `#E6EEF7` |
+| ink | `#2B1E2F` | main text |
+| muted | `#6E5C6B` | secondary text |
+| projects | `#B8336A` (dark `#85204A`, soft `#FBE3EC`) | Projects tab and its screens |
+| patterns | `#6D4BC3` (dark `#4F3A8F`, soft `#E9E2FA`) | Patterns tab and its screens |
+| stash | `#0E7C7B` (dark `#0B5B5A`, soft `#D5F0EC`) | Stash tab and its screens; "done" ticks and progress bars everywhere |
+| timer | `#4169E1` (darker `#3457C8`, `#2A48B0`) | timer bar, Timer screen card, Timer tab |
+| row button | `#7DB8F2` with text `#0A2A52` | **+ row** buttons |
+| highlight | `#F6B93B` | Stop button on the Timer screen, "Low" badge, progress track `#FDEFC8` |
+
+White text is used only on the four tab colors and `#2A48B0`/`#3457C8`; every text/background pair meets 4.5:1 contrast.
+
+**Tab icons** (24 px outline, 1.8 px stroke): Projects = four-square grid, Patterns = crochet hook, Stash = yarn ball, Timer = hourglass. The active tab uses its tab color; inactive tabs use muted.
 
 ## Architecture
 
@@ -217,8 +255,8 @@ Each feature folder holds its screens, its data hooks (queries and mutations) an
 Test-driven development throughout.
 
 - **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges, row counter (no decrement below 0, "Row x/y" label).
-- **Component (React Testing Library):** pattern form (parts with count and rows), yarn usage entry, manual session entry, row counter.
-- **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, one-running-timer index, and RLS (a second user sees nothing).
+- **Component (React Testing Library):** pattern form (parts with count and rows, type chips), pattern type filter, yarn usage entry, manual session entry, row counter.
+- **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, new user gets the six default pattern types, one-running-timer index, and RLS (a second user sees nothing).
 - **End-to-end (Playwright):** log in, create pattern, start project from it, time a part, record yarn, check the stash numbers.
 
 ## Phase 2: Fill from PDF
