@@ -10,7 +10,7 @@ A personal web app to track crochet projects and yarn inventory. It runs on phon
 Core ideas:
 
 - **Patterns** are reusable templates (e.g. "T-rex", "Bag A"). Starting a project from a pattern copies its parts.
-- **Projects** are split into **parts** (head, body, leg 1…). Each part tracks time spent and yarn used.
+- **Projects** are split into **parts** (head, body, leg 1…). Each part tracks time spent, yarn used and the row you stopped at.
 - **Stash** quantities are computed from what projects use and plan to use, never edited by hand.
 
 ## Success criteria
@@ -20,6 +20,7 @@ Core ideas:
 3. Stash shows correct owned / used / reserved / free counts after any edit or delete.
 4. A pattern page shows how many times it was made, average time and average skeins.
 5. The app installs to a phone home screen and works in a desktop browser.
+6. After a break, the project page shows which row each part stopped at.
 
 ## Scope
 
@@ -27,7 +28,7 @@ Core ideas:
 
 **Phase 2:** "Fill from PDF" — Claude reads an uploaded pattern PDF and pre-fills the pattern form (see Phase 2 section).
 
-**Out of scope:** offline mode, multiple users or sharing, grams/length units, row counters, shopping lists.
+**Out of scope:** offline mode, multiple users or sharing, grams/length units, shopping lists.
 
 ## Data model
 
@@ -53,6 +54,7 @@ Quantities of yarn are in **skeins**, stored as `numeric(6,2)` (e.g. 0.25).
 | name | text, required | "Leg" |
 | position | int, required | display order |
 | count | int, required, ≥ 1, default 1 | "Leg ×2" |
+| total_rows | int, nullable, ≥ 1 | rows in this part, if known |
 
 ### projects
 | Column | Type | Notes |
@@ -69,7 +71,18 @@ Quantities of yarn are in **skeins**, stored as `numeric(6,2)` (e.g. 0.25).
 `project_id` (cascade), `path` (in `project-photos` bucket), `caption`, `taken_on` (date).
 
 ### parts
-`project_id` (cascade), `name`, `position`, `done` (bool, default false), `notes`.
+| Column | Type | Notes |
+|---|---|---|
+| project_id | uuid, required | cascade delete |
+| name | text, required | |
+| position | int, required | display order |
+| done | bool, default false | ticked by the user; never set automatically |
+| current_row | int, nullable, ≥ 0 | last row completed; null until counting starts |
+| total_rows | int, nullable, ≥ 1 | copied from the pattern part |
+| resume_note | text | where exactly you stopped |
+| notes | text | |
+
+A project created blank gets one part named "Main", so every new project has somewhere to count rows.
 
 ### time_sessions
 | Column | Type | Notes |
@@ -123,39 +136,44 @@ The view uses `security_invoker = true` so row-level security applies.
 In one transaction:
 
 1. Create a project: name = pattern name, `pattern_id`, status `in_progress`, `start_date` today, hook size from pattern.
-2. Copy parts in order. A part with `count = 1` keeps its name; a part with `count = n > 1` becomes `n` parts named "Leg 1" … "Leg n".
+2. Copy parts in order, including `total_rows`. A part with `count = 1` keeps its name; a part with `count = n > 1` becomes `n` parts named "Leg 1" … "Leg n".
 3. Return the new project id.
 
 Later edits to the project's parts never change the pattern.
 
 ## Screens
 
-Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin bar showing the running timer (part name, elapsed time, stop) sits above the tab bar on every screen.
+Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin bar showing the running timer (part name, elapsed time, current row with **+ row**, stop) sits above the tab bar on every screen.
 
 **Login** — email magic link.
 
 **Projects list** — grouped by status, `in_progress` first. Card: photo, name, parts done (3/7), total time. "+ New project" offers **From a pattern** (pick from list) or **Blank**.
 
-**Project page** — header (status, dates, hook, link to pattern); parts list with ▶ start timer and ✓ done per part; add, rename, reorder, delete parts; yarn summary per yarn (planned vs used) with "plan yarn" action; photos; notes.
+**Project page** — header (status, dates, hook, link to pattern); parts list with ▶ start timer, ✓ done and "Row 12/18" per part; add, rename, reorder, delete parts; yarn summary per yarn (planned vs used) with "plan yarn" action; photos; notes.
 
-**Part page** — time sessions (list, add manual, edit, delete); yarn used (pick a stash yarn, enter skeins).
+**Part page** — row counter (large number with − and +, tap to type; shows "/ total" when `total_rows` is set) and resume note; time sessions (list, add manual, edit, delete); yarn used (pick a stash yarn, enter skeins).
 
 **Patterns list** — name and stats (made N×, average time, average skeins).
 
 **Pattern page** — details, template parts, embedded PDF viewer, **Start project** button.
 
-**Pattern form** — name, designer, link, hook, weight, notes, parts with ×count, attach PDF. Phase 2 adds "Fill from PDF".
+**Pattern form** — name, designer, link, hook, weight, notes, parts with ×count and optional rows, attach PDF. Phase 2 adds "Fill from PDF".
 
 **Stash** — grid of yarn cards (photo, name, color, free / owned). Filters: weight, fiber. Badge "low" when 0 < free < 1, "out" when free ≤ 0.
 
 **Yarn page** — details, purchase info, and projects that use or reserve it.
 
-**Timer tab** — the running part with a large stop button; when idle, the five most recently timed parts, each with ▶.
+**Timer tab** — the running part with a large stop button and its row counter with a big **+ row** button; when idle, the five most recently timed parts, each with ▶.
 
 ### Timer rules
 - Starting a timer while another runs stops the running one first.
 - The start time lives in the database, so the timer continues across app restarts and devices.
 - A forgotten timer is fixed by editing its session.
+
+### Row counter rules
+- The counter never goes below 0.
+- It may exceed `total_rows` (patterns are sometimes adjusted); the display then shows e.g. "Row 20/18".
+- Reaching `total_rows` does not tick ✓ done.
 
 ## Architecture
 
@@ -165,7 +183,7 @@ Phone-first. Bottom tab bar: **Projects · Patterns · Stash · Timer**. A thin 
 src/
   lib/
     supabase.ts      client setup
-    calc.ts          pure functions: durations, rollups, part expansion, stock badges
+    calc.ts          pure functions: durations, rollups, part expansion, stock badges, row labels
     images.ts        client-side photo resizing
   features/
     auth/
@@ -188,7 +206,7 @@ Each feature folder holds its screens, its data hooks (queries and mutations) an
 ## Error handling
 
 - **No connection:** failed requests show a message with a retry button. Phase 1 requires internet.
-- **Validation:** skeins ≥ 0; `ended_at > started_at`; name required on patterns, projects, parts, yarns; pattern part count ≥ 1. Checked in the form and enforced by database constraints.
+- **Validation:** skeins ≥ 0; `ended_at > started_at`; name required on patterns, projects, parts, yarns; pattern part count ≥ 1; `current_row` ≥ 0; `total_rows` ≥ 1. Checked in the form and enforced by database constraints.
 - **Second running timer:** prevented by the unique index; the app stops the current one before starting another.
 - **Photos:** resized on the device to a maximum of 1600 px on the long edge, JPEG quality 0.8, before upload.
 - **PDFs:** maximum 20 MB.
@@ -198,14 +216,14 @@ Each feature folder holds its screens, its data hooks (queries and mutations) an
 
 Test-driven development throughout.
 
-- **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges.
-- **Component (React Testing Library):** pattern form (parts with count), yarn usage entry, manual session entry.
-- **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, atomicity), one-running-timer index, and RLS (a second user sees nothing).
+- **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges, row counter (no decrement below 0, "Row x/y" label).
+- **Component (React Testing Library):** pattern form (parts with count and rows), yarn usage entry, manual session entry, row counter.
+- **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, one-running-timer index, and RLS (a second user sees nothing).
 - **End-to-end (Playwright):** log in, create pattern, start project from it, time a part, record yarn, check the stash numbers.
 
 ## Phase 2: Fill from PDF
 
-- A Supabase Edge Function `extract-pattern` receives the storage path of an uploaded PDF, sends the PDF to the Claude API, and returns JSON: `name`, `designer`, `hook_size`, `yarn_weight`, `parts[]` (`name`, `count`).
+- A Supabase Edge Function `extract-pattern` receives the storage path of an uploaded PDF, sends the PDF to the Claude API, and returns JSON: `name`, `designer`, `hook_size`, `yarn_weight`, `parts[]` (`name`, `count`, `total_rows`).
 - The app fills the pattern form with the result; the user reviews and saves. Nothing is saved automatically.
 - The Anthropic API key is stored as an Edge Function secret, never in the frontend.
 - On failure or empty result, the form stays as it was and shows "Couldn't read this PDF — please fill it in manually."
