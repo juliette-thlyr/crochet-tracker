@@ -28,8 +28,8 @@ export default function TimerBar() {
         <button type="button" onClick={() => setRow.mutate({ partId: part.id, row: (part.current_row ?? 0) + 1 })}
           className="h-11 rounded-full bg-row px-3.5 text-sm text-row-ink">+ row</button>
         <button type="button" aria-label="Stop timer" onClick={() => stop.mutate()}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-surface">
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="#4169E1" /></svg>
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-timer">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="currentColor" /></svg>
         </button>
       </div>
       {(setRow.isError || stop.isError) && <p role="alert" className="px-4 pb-2 text-xs">Couldn't save — try again</p>}

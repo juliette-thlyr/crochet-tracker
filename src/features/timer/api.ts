@@ -74,6 +74,7 @@ export function useSetRow() {
   const qc = useQueryClient();
   const invalidate = useInvalidate();
   return useMutation({
+    mutationKey: ['setRow'],
     mutationFn: async ({ partId, row }: { partId: string; row: number }) => {
       const { error } = await supabase.from('parts').update({ current_row: Math.max(0, row) }).eq('id', partId);
       if (error) throw error;
@@ -87,6 +88,9 @@ export function useSetRow() {
     onError: (_e, _v, ctx) => {
       if (ctx?.prev !== undefined) qc.setQueryData(['timer', 'running'], ctx.prev);
     },
-    onSettled: invalidate,
+    onSettled: async () => {
+      // Only refetch once the last pending tap has settled, so an early refetch can't roll back newer taps.
+      if (qc.isMutating({ mutationKey: ['setRow'] }) === 1) await invalidate();
+    },
   });
 }
