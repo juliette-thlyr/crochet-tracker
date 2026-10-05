@@ -28,6 +28,7 @@ export default function ProjectPage() {
   const deleteProject = useDeleteProject();
   const yarns = useYarns();
   const [editing, setEditing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const [newPart, setNewPart] = useState<string | null>(null);
   const [plan, setPlan] = useState<{ yarnId: string; skeins: number } | null>(null);
   const [confirm, setConfirm] = useState<null | { kind: 'project' } | { kind: 'part'; part: ProjectPart }>(null);
@@ -55,10 +56,23 @@ export default function ProjectPage() {
           {cover && <img src={cover} alt="" className="h-full w-full object-cover" />}
         </div>
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl">{p.name}</h1>
+          {renaming ? (
+            <input autoFocus aria-label="Project name" defaultValue={p.name}
+              className="h-11 rounded-xl border border-line bg-surface px-3 text-2xl"
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v && v !== p.name) updateProject.mutate({ id, patch: { name: v } });
+                setRenaming(false);
+              }} />
+          ) : (
+            <button type="button" onClick={() => setRenaming(true)} className="min-h-11 self-start text-left">
+              <h1 className="text-3xl">{p.name}</h1>
+            </button>
+          )}
           <span className="text-sm text-muted">
             {p.pattern ? <>From <Link to={`/patterns/${p.pattern.id}`} className="text-projects">{p.pattern.name}</Link></> : 'No pattern'}
             {p.start_date && ` · since ${p.start_date}`}
+            {p.finish_date && ` · finished ${p.finish_date}`}
           </span>
           <label className="relative flex min-h-11 items-center self-start rounded-xl border border-line bg-surface px-2.5 py-0.5 text-sm">
             <span>{hookLabel(p.hook_size_mm === null ? null : Number(p.hook_size_mm),
@@ -125,7 +139,7 @@ export default function ProjectPage() {
               className="h-11 flex-1 rounded-xl border border-line px-3" />
             <button type="button" className="h-11 rounded-full bg-projects px-4 text-white"
               onClick={() => {
-                if (newPart.trim()) addPart.mutate({ projectId: id, name: newPart, position: p.parts.length });
+                if (newPart.trim()) addPart.mutate({ projectId: id, name: newPart, position: p.parts.reduce((m, x) => Math.max(m, x.position), -1) + 1 });
                 setNewPart(null);
               }}>Add</button>
           </li>

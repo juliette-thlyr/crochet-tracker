@@ -5,6 +5,7 @@ import ProjectPage from './ProjectPage';
 
 const updatePart = vi.fn();
 const updateProject = vi.fn();
+const addPart = vi.fn();
 const part = (id: string, name: string, position: number, extra = {}) => ({
   id, name, position, project_id: 'pr1', done: false, current_row: null, total_rows: null, resume_note: null,
   notes: null, time_sessions: [], part_yarns: [], ...extra,
@@ -16,7 +17,7 @@ vi.mock('./api', () => ({
       hook_size_mm: 4, notes: null, pattern: { id: 'pa1', name: 'T-rex', hook_size_mm: 3.5 },
       parts: [
         part('a', 'Head', 0, { done: true, current_row: 24, total_rows: 24 }),
-        part('b', 'Leg 1', 1, { current_row: 12, total_rows: 18, resume_note: 'after 2nd increase' }),
+        part('b', 'Leg 1', 2, { current_row: 12, total_rows: 18, resume_note: 'after 2nd increase' }),
       ],
       project_yarns: [], project_photos: [],
     },
@@ -24,7 +25,7 @@ vi.mock('./api', () => ({
   }),
   useUpdateProject: () => ({ mutate: updateProject }),
   useUpdatePart: () => ({ mutate: updatePart }),
-  useAddPart: () => ({ mutate: vi.fn() }),
+  useAddPart: () => ({ mutate: addPart }),
   useDeletePart: () => ({ mutate: vi.fn() }),
   useMovePart: () => ({ mutate: vi.fn() }),
   usePlanYarn: () => ({ mutate: vi.fn() }),
@@ -55,4 +56,22 @@ test('ticking a part marks it done; status changes are saved', async () => {
   expect(updatePart).toHaveBeenCalledWith({ id: 'b', patch: { done: true } });
   await userEvent.selectOptions(screen.getByLabelText('Status'), 'Finished');
   expect(updateProject).toHaveBeenCalledWith({ id: 'pr1', patch: { status: 'finished' } });
+});
+
+test('renaming the project saves the trimmed name on blur', async () => {
+  renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
+  await userEvent.click(screen.getByRole('button', { name: 'T-rex for Léo' }));
+  const input = screen.getByLabelText('Project name');
+  await userEvent.clear(input);
+  await userEvent.type(input, 'Dino');
+  await userEvent.tab();
+  expect(updateProject).toHaveBeenCalledWith({ id: 'pr1', patch: { name: 'Dino' } });
+});
+
+test('a new part after a position gap gets the next free position', async () => {
+  renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
+  await userEvent.click(screen.getByRole('button', { name: '+ Add part' }));
+  await userEvent.type(screen.getByLabelText('New part name'), 'Tail');
+  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  expect(addPart).toHaveBeenCalledWith({ projectId: 'pr1', name: 'Tail', position: 3 });
 });
