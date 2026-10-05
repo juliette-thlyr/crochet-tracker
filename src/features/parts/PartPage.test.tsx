@@ -1,11 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/render';
 import PartPage from './PartPage';
 
 const updatePart = vi.fn();
 const setRow = vi.fn();
+const deleteSession = vi.fn();
+const removeYarn = vi.fn();
 const fixture = {
   id: 'pt1', name: 'Leg 1', project_id: 'pr1', position: 1, done: false, current_row: 12, total_rows: 18,
   resume_note: 'After the 2nd increase round', notes: null,
@@ -20,9 +22,9 @@ vi.mock('./api', () => ({
   // The real query cache, so optimistic row patches re-render the page like in the app.
   usePart: (id: string) => useQuery({ queryKey: ['parts', id], queryFn: async () => fixture, initialData: fixture, staleTime: Infinity }),
   useSaveSession: () => ({ mutate: vi.fn() }),
-  useDeleteSession: () => ({ mutate: vi.fn() }),
+  useDeleteSession: () => ({ mutate: deleteSession }),
   useSetYarnUsage: () => ({ mutate: vi.fn() }),
-  useRemoveYarnUsage: () => ({ mutate: vi.fn() }),
+  useRemoveYarnUsage: () => ({ mutate: removeYarn }),
 }));
 vi.mock('../projects/api', () => ({ useUpdatePart: () => ({ mutate: updatePart }), useDeletePart: () => ({ mutate: vi.fn() }) }));
 vi.mock('../timer/api', () => ({
@@ -81,4 +83,29 @@ test('editing another session shows its own duration', async () => {
   expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(25);
   await userEvent.click(edits[1]);
   expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(10);
+});
+
+test('deleting a time session asks for confirmation first', async () => {
+  deleteSession.mockClear();
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  await userEvent.click(screen.getAllByRole('button', { name: 'Delete time' })[0]);
+  const dialog = screen.getByRole('dialog');
+  expect(deleteSession).not.toHaveBeenCalled();
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  expect(deleteSession).not.toHaveBeenCalled();
+
+  await userEvent.click(screen.getAllByRole('button', { name: 'Delete time' })[0]);
+  await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
+  expect(deleteSession).toHaveBeenCalledExactlyOnceWith('s1');
+});
+
+test('removing a yarn record asks for confirmation first', async () => {
+  removeYarn.mockClear();
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  await userEvent.click(screen.getByRole('button', { name: 'Remove Fern green' }));
+  const dialog = screen.getByRole('dialog', { name: 'Remove Fern green?' });
+  expect(removeYarn).not.toHaveBeenCalled();
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
+  expect(removeYarn).toHaveBeenCalledExactlyOnceWith('u1');
 });

@@ -12,6 +12,8 @@ import SessionForm from './SessionForm';
 import YarnUsageForm from './YarnUsageForm';
 
 const h2 = 'text-sm uppercase tracking-wide text-muted';
+type Confirm = { kind: 'part' } | { kind: 'session'; id: string; label: string } | { kind: 'yarn'; id: string; name: string };
+
 const when = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -30,7 +32,7 @@ export default function PartPage() {
   const [sessionForm, setSessionForm] = useState<null | 'new' | Session>(null);
   const [addingYarn, setAddingYarn] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState<Confirm | null>(null);
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
   if (isPending) return <p className="p-4 text-muted">Loading…</p>;
@@ -38,6 +40,21 @@ export default function PartPage() {
   const mutationError =
     updatePart.error ?? setRow.error ?? deletePart.error ?? saveSession.error ?? deleteSession.error ?? setYarn.error ?? removeYarn.error;
   const now = new Date();
+  const confirmProps = (c: Confirm) => {
+    const onConfirm = () => {
+      setConfirming(null);
+      if (c.kind === 'session') deleteSession.mutate(c.id);
+      else if (c.kind === 'yarn') removeYarn.mutate(c.id);
+      else deletePart.mutate(id, { onSuccess: () => navigate(`/projects/${part.project.id}`) });
+    };
+    if (c.kind === 'session') {
+      return { title: 'Delete this time?', message: `${c.label} is removed from this part.`, confirmLabel: 'Delete', onConfirm };
+    }
+    if (c.kind === 'yarn') {
+      return { title: `Remove ${c.name}?`, message: 'Its skeins go back to your stash.', confirmLabel: 'Remove', onConfirm };
+    }
+    return { title: `Delete ${part.name}?`, message: 'Its time and yarn records are deleted too.', confirmLabel: 'Delete', onConfirm };
+  };
   const patch = (p: Parameters<typeof updatePart.mutate>[0]['patch']) => updatePart.mutate({ id, patch: p });
 
   return (
@@ -98,7 +115,7 @@ export default function PartPage() {
               <span className="flex items-center gap-1">
                 {formatDuration(sessionSeconds(s, now))}
                 <button type="button" aria-label="Edit time" onClick={() => setSessionForm(s)} className="h-11 w-11 text-muted">✎</button>
-                <button type="button" aria-label="Delete time" onClick={() => deleteSession.mutate(s.id)} className="h-11 w-11 text-muted">×</button>
+                <button type="button" aria-label="Delete time" onClick={() => setConfirming({ kind: 'session', id: s.id, label: `${when(s.started_at)} · ${formatDuration(sessionSeconds(s, now))}` })} className="h-11 w-11 text-muted">×</button>
               </span>
             )}
           </li>
@@ -121,19 +138,12 @@ export default function PartPage() {
         <div key={u.id} className="flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-3.5 py-2">
           <span className="flex-1">{u.yarn?.name}{u.yarn?.brand && ` · ${u.yarn.brand}`}</span>
           <span>{formatSkeins(Number(u.skeins_used))}</span>
-          <button type="button" aria-label={`Remove ${u.yarn?.name}`} onClick={() => removeYarn.mutate(u.id)} className="h-11 w-11 text-muted">×</button>
+          <button type="button" aria-label={`Remove ${u.yarn?.name}`} onClick={() => setConfirming({ kind: 'yarn', id: u.id, name: u.yarn?.name ?? 'yarn' })} className="h-11 w-11 text-muted">×</button>
         </div>
       ))}
 
-      <button type="button" onClick={() => setConfirming(true)} className="h-11 self-start rounded-full border border-line px-5">Delete part</button>
-      <ConfirmDialog
-        open={confirming}
-        title={`Delete ${part.name}?`}
-        message="Its time and yarn records are deleted too."
-        confirmLabel="Delete"
-        onCancel={() => setConfirming(false)}
-        onConfirm={() => { setConfirming(false); deletePart.mutate(id, { onSuccess: () => navigate(`/projects/${part.project.id}`) }); }}
-      />
+      <button type="button" onClick={() => setConfirming({ kind: 'part' })} className="h-11 self-start rounded-full border border-line px-5">Delete part</button>
+      {confirming && <ConfirmDialog open {...confirmProps(confirming)} onCancel={() => setConfirming(null)} />}
     </div>
   );
 }
