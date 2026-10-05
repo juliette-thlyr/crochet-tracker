@@ -28,11 +28,21 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
   const save = useSaveYarn();
   const [y, setY] = useState<YarnInput>(initial);
   const [photo, setPhoto] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<unknown>(null);
   const set = <K extends keyof YarnInput>(k: K, v: YarnInput[K]) => setY({ ...y, [k]: v });
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const photo_path = photo ? await uploadFile('yarn-photos', await resizeImage(photo), 'jpg') : y.photo_path;
+    setUploadError(null);
+    let photo_path = y.photo_path;
+    if (photo) {
+      try {
+        photo_path = await uploadFile('yarn-photos', await resizeImage(photo), 'jpg');
+      } catch (err) {
+        setUploadError(err);
+        return;
+      }
+    }
     save.mutate({ ...y, photo_path }, { onSuccess: (newId) => navigate(`/stash/${newId}`) });
   }
 
@@ -43,6 +53,7 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
         <h1 className="text-2xl">{initial.id ? 'Edit yarn' : 'New yarn'}</h1>
         <button type="submit" disabled={save.isPending} className="min-h-11 text-stash">Save</button>
       </header>
+      {uploadError != null && <ErrorBox error={uploadError} />}
       {save.error && <ErrorBox error={save.error} />}
       <label className={label}>Name<input required className={input} value={y.name} onChange={(e) => set('name', e.target.value)} /></label>
       <label className={label}>Brand<input className={input} value={y.brand ?? ''} onChange={(e) => set('brand', text(e.target.value))} /></label>

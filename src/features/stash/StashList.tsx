@@ -8,7 +8,7 @@ import { useYarns } from './api';
 import { filterYarns, type YarnWithStock } from './logic';
 
 const chip = (on: boolean) =>
-  `h-9 shrink-0 rounded-full px-3.5 text-sm ${on ? 'bg-stash text-white' : 'border border-line bg-surface'}`;
+  `h-11 shrink-0 rounded-full px-3.5 text-sm ${on ? 'bg-stash text-white' : 'border border-line bg-surface'}`;
 
 export default function StashList() {
   const { data, isPending, error, refetch } = useYarns();
@@ -44,7 +44,7 @@ export default function StashList() {
         <label className="flex items-center gap-2 text-sm text-muted">
           Fiber
           <select value={fiber} onChange={(e) => setFiber(e.target.value)}
-            className="h-9 rounded-xl border border-line bg-surface px-2 text-ink">
+            className="h-11 rounded-xl border border-line bg-surface px-2 text-ink">
             <option value="all">All fibers</option>
             {fibers.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
