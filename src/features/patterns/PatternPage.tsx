@@ -65,6 +65,7 @@ export default function PatternPage() {
       </ul>
 
       {start.error && <ErrorBox error={start.error} />}
+      {del.error && <ErrorBox error={del.error} />}
       <button type="button" disabled={start.isPending}
         onClick={() => start.mutate(id, { onSuccess: (projectId) => navigate(`/projects/${projectId}`) })}
         className="h-14 rounded-full bg-patterns text-lg text-white">

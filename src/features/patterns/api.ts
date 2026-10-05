@@ -88,12 +88,18 @@ export function useSavePattern() {
       if (saved.error) throw saved.error;
       const patternId = saved.data.id;
       // Template parts are copied into projects at start, so replacing them never touches existing projects.
-      const del = await supabase.from('pattern_parts').delete().eq('pattern_id', patternId);
-      if (del.error) throw del.error;
+      // Insert the new parts before removing the old ones so a failed insert cannot lose the template.
+      const old = await supabase.from('pattern_parts').select('id').eq('pattern_id', patternId);
+      if (old.error) throw old.error;
       const rows = cleanPartDrafts(parts).map((p) => ({ ...p, pattern_id: patternId }));
       if (rows.length > 0) {
         const ins = await supabase.from('pattern_parts').insert(rows);
         if (ins.error) throw ins.error;
+      }
+      const oldIds = old.data.map((r) => r.id);
+      if (oldIds.length > 0) {
+        const del = await supabase.from('pattern_parts').delete().in('id', oldIds);
+        if (del.error) throw del.error;
       }
       return patternId;
     },

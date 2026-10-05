@@ -127,6 +127,8 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         </div>
       </div>
 
+      {createType.error && <ErrorBox error={createType.error} />}
+
       <div className="flex gap-2">
         <div className="flex-1">
           <HookSelect label="Recommended hook" value={p.hook_size_mm} onChange={(mm) => set('hook_size_mm', mm)} />
@@ -156,7 +158,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
             onChange={(e) => setPart(i, { total_rows: e.target.value === '' ? null : Number(e.target.value) })}
             className="h-11 w-14 rounded-xl border border-line bg-surface text-center" />
           <button type="button" aria-label="Remove part" onClick={() => setParts(parts.filter((_, j) => j !== i))}
-            className="h-11 w-9 text-muted">×</button>
+            className="h-11 w-11 text-muted">×</button>
         </div>
       ))}
       <button type="button" onClick={() => setParts([...parts, emptyPart()])} className="h-11 self-start text-patterns">+ Add part</button>
