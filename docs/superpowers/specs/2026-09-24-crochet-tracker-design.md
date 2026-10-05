@@ -241,7 +241,9 @@ Each feature folder holds its screens, its data hooks (queries and mutations) an
 
 **Supabase:** Postgres, Auth (magic link), Storage with three private buckets — `pattern-pdfs`, `project-photos`, `yarn-photos` — each with objects under `<user_id>/…` and storage policies restricting access to that folder.
 
-**Hosting:** Netlify free tier for the frontend; Supabase free tier for the backend. Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+**Hosting:** Netlify free tier for the frontend; Supabase free tier for the backend, a single cloud project (`crochet`). Tests use a local Supabase stack instead of a second cloud project.
+
+**Local development:** the dev server runs on `http://localhost:7420`. Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 
 ## Error handling
 
@@ -258,7 +260,7 @@ Test-driven development throughout.
 
 - **Unit (Vitest):** everything in `calc.ts` — durations with running sessions, rollups, part expansion names, stock badges, row counter (no decrement below 0, "Row x/y" label), hook sizes (`hookSizeOptions()` returns the 23 values 1.0…12.0, `formatHook(3.5)` → "3.5 mm", `formatHook(null)` → "—", `hookLabel(project 4.0, pattern 3.5)` → "hook 4.0 mm (pattern: 3.5 mm)", same sizes → "hook 3.5 mm").
 - **Component (React Testing Library):** pattern form (parts with count and rows, type chips), pattern type filter, yarn usage entry, manual session entry, row counter.
-- **Database:** against a separate Supabase **test** project, never the real one — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, new user gets the six default pattern types, one-running-timer index, and RLS (a second user sees nothing).
+- **Database:** against a **local** Supabase stack (Supabase CLI in Docker), never the real project — `yarn_stock` (used, reserved, free, frogged returns yarn), `start_project_from_pattern` (expansion, order, `total_rows` copied, atomicity), blank project gets a "Main" part, new user gets the six default pattern types, one-running-timer index, and RLS (a second user sees nothing).
 - **End-to-end (Playwright):** log in, create pattern, start project from it, time a part, record yarn, check the stash numbers.
 
 ## Phase 2: Fill from PDF

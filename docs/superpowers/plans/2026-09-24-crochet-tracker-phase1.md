@@ -25,15 +25,16 @@
 - Storage buckets `pattern-pdfs`, `project-photos`, `yarn-photos`, private, objects under `<user_id>/…`.
 - Prices displayed in euros.
 - Visual design: font **Indie Flower** for all text; colors only through the Tailwind theme tokens defined in Task 1 (never raw hex in components). Tab colors: Projects `projects`, Patterns `patterns`, Stash `stash`, Timer `timer`; "+ row" buttons `row` with `row-ink` text. Tab icons: grid, crochet hook, yarn ball, hourglass. Touch targets ≥ 44 px.
-- Database tests run only against the **test** Supabase project (`.env.test`), never the real one.
-- Secrets (`.env`, `.env.test`) are never committed.
+- Database and end-to-end tests run only against the **local** Supabase stack (`npm run db:start`, in Docker; its URL and keys live in `.env.test`), never the real `crochet` project. There is a single cloud project.
+- The dev server runs on port **7420** (`strictPort`); the end-to-end test server on **7421**.
+- `.env` and `.env.test` are never committed.
 - Phase 1 requires internet; no offline mode.
 
 ## Prerequisites (done by the user, once)
 
 1. **Upgrade Node to 22 LTS.** This machine has 18.16, which is end-of-life and too old for Tailwind 4 and Vite 6. Install from https://nodejs.org, then check `node --version` prints `v22.x`.
-2. Create a free account at https://supabase.com and **two projects**: `crochet` (real) and `crochet-test` (tests only). For each, copy from *Project Settings → API*: Project URL, `anon` key, `service_role` key; and from *Connect → Session pooler*: the Postgres connection string with the database password filled in.
-3. In both projects, *Authentication → Providers → Email*: keep Email enabled. In the real project, *Authentication → URL Configuration*: add `http://localhost:5173` (and later the Netlify URL) to Redirect URLs.
+2. Create a free account at https://supabase.com and **one project**, `crochet`. Copy its **Project URL** (*Project Settings → Data API*), its **anon** key (*Project Settings → API Keys*) and the **Session pooler** connection string (*Connect* button → *Connection String*, with the database password filled in). Put them in `.env` as `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `DB_URL`.
+3. In `crochet`, *Authentication → Providers → Email*: keep Email enabled. *Authentication → URL Configuration*: add `http://localhost:7420` (and later the Netlify URL) to Redirect URLs. Install and start **Docker Desktop**: tests and type generation use a local Supabase stack running in Docker (the first start downloads about 1–2 GB).
 4. Create a free Netlify account (needed only in Task 15).
 
 ---
@@ -42,7 +43,8 @@
 
 ```
 .env.example                  documented env vars (committed)
-.env / .env.test              real / test secrets (ignored)
+.env                          real project URL, anon key, DB_URL (ignored)
+.env.test                     local Supabase stack URL and keys (ignored)
 index.html                    loads Indie Flower, mounts the app
 vite.config.ts                Vite + React + Tailwind + PWA + Vitest (unit) config
 vitest.db.config.ts           Vitest config for database tests
@@ -50,7 +52,7 @@ playwright.config.ts
 netlify.toml                  build + SPA redirect
 public/icons/                 PWA icons
 scripts/
-  db.mjs                      push migrations / generate types, for the real or test project
+  db.mjs                      push migrations to the real project / generate types from the local stack
 src/
   main.tsx                    React root, QueryClient, Router
   App.tsx                     routes + auth guard
@@ -97,10 +99,11 @@ e2e/
 Commands used throughout:
 
 - Unit/component tests: `npm test` (Vitest, `src/**`)
-- Database tests: `npm run test:db` (Vitest, `supabase/tests/**`, reads `.env.test`)
-- Push migrations to the test project: `npm run db:push:test`
+- Start / stop the local Supabase stack (Docker): `npm run db:start` / `npm run db:stop`
+- Apply all migrations to the local stack from scratch: `npm run db:reset`
+- Database tests: `npm run test:db` (Vitest, `supabase/tests/**`, reads `.env.test`, needs the local stack running)
 - Push migrations to the real project: `npm run db:push`
-- Regenerate TypeScript types from the test project: `npm run db:types`
+- Regenerate TypeScript types from the local stack: `npm run db:types`
 - End-to-end: `npm run e2e`
 
 ---
@@ -130,9 +133,11 @@ Commands used throughout:
     "test": "vitest run",
     "test:watch": "vitest",
     "test:db": "vitest run --config vitest.db.config.ts",
-    "db:push": "node scripts/db.mjs push .env",
-    "db:push:test": "node scripts/db.mjs push .env.test",
-    "db:types": "node scripts/db.mjs types .env.test",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:push": "node scripts/db.mjs push",
+    "db:types": "node scripts/db.mjs types",
     "e2e": "playwright test"
   },
   "dependencies": {
@@ -178,14 +183,16 @@ supabase/.temp
 
 `.env.example`:
 ```
-# Real project (.env): used by the app and `npm run db:push`
+# .env: the real `crochet` project, used by `npm run dev`, the build and `npm run db:push`
 VITE_SUPABASE_URL=https://<ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon key>
 DB_URL=postgresql://postgres.<ref>:<password>@<host>:5432/postgres
 
-# Test project (.env.test): used by `npm run test:db`, `db:push:test`, `db:types`, `e2e`
-# The same three names, plus:
-# SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+# .env.test: the LOCAL Supabase stack (values printed by `npx supabase status -o env`),
+# used by `npm run test:db` and `npm run e2e`:
+# VITE_SUPABASE_URL=http://127.0.0.1:54321
+# VITE_SUPABASE_ANON_KEY=<local anon key>
+# SUPABASE_SERVICE_ROLE_KEY=<local service_role key>
 ```
 
 `tsconfig.json`:
@@ -219,6 +226,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: { port: 7420, strictPort: true },
+  preview: { port: 7420, strictPort: true },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -385,7 +394,7 @@ createRoot(document.getElementById('root')!).render(
 
 Run: `npm test`. Expected: PASS (1 test).
 Run: `npm run build`. Expected: completes with no TypeScript errors.
-Run: `npm run dev` and open http://localhost:5173. Expected: "Crochet Tracker" in Indie Flower, berry-colored, on a pastel blue page.
+Run: `npm run dev` and open http://localhost:7420. Expected: "Crochet Tracker" in Indie Flower, berry-colored, on a pastel blue page.
 
 - [ ] **Step 9: Commit**
 
@@ -701,11 +710,25 @@ git commit -m "feat: add part, row, stock, hook and money helpers"
 - Produces: trigger that gives each new auth user the six default pattern types.
 - Produces (in `supabase/tests/helpers.ts`): `admin: SupabaseClient` (service role), `type TestUser = { id: string; email: string; client: SupabaseClient }`, `createTestUser(): Promise<TestUser>`, `deleteTestUser(u: TestUser): Promise<void>`.
 
-**Before starting:** `.env.test` must exist with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `DB_URL` of the **crochet-test** project. `.env` must exist with the three variables of the **crochet** project (no service key). Docker Desktop must be running for `npm run db:types`.
+**Before starting:** Docker Desktop must be running. `.env` (real project) is only needed in Task 7's last step; everything else in Tasks 4–7 runs against the local stack.
 
 - [ ] **Step 1: Initialise Supabase and add the helper scripts**
 
 Run: `npx supabase init` (answer "N" to the VS Code / IntelliJ settings questions). Expected: `supabase/config.toml` created.
+
+In `supabase/config.toml`, section `[auth]`, set the app's ports:
+```toml
+site_url = "http://localhost:7420"
+additional_redirect_urls = ["http://localhost:7420", "http://localhost:7421"]
+```
+
+Run: `npm run db:start`. Expected (the first run downloads images and takes several minutes): `Started supabase local development setup.`, then the API URL `http://127.0.0.1:54321` and the keys.
+Run: `npx supabase status -o env` and create `.env.test` from its output. These are local development values, not secrets, but the file stays git-ignored:
+```
+VITE_SUPABASE_URL=<API_URL>
+VITE_SUPABASE_ANON_KEY=<ANON_KEY>
+SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY>
+```
 
 `scripts/db.mjs`:
 ```js
@@ -713,20 +736,22 @@ import { spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { config } from 'dotenv';
 
-const [cmd, envFile] = process.argv.slice(2);
-config({ path: envFile });
-const url = process.env.DB_URL;
-if (!url) {
-  console.error(`DB_URL is missing in ${envFile}`);
-  process.exit(1);
-}
 const run = (args, opts) => spawnSync('npx', ['supabase', ...args], { shell: true, ...opts });
+const cmd = process.argv[2];
 
 if (cmd === 'push') {
+  // Applies pending migrations to the REAL project named in .env.
+  config({ path: '.env' });
+  const url = process.env.DB_URL;
+  if (!url) {
+    console.error('DB_URL is missing in .env');
+    process.exit(1);
+  }
   const r = run(['db', 'push', '--include-all', '--db-url', `"${url}"`], { stdio: 'inherit' });
   process.exit(r.status ?? 1);
 } else if (cmd === 'types') {
-  const r = run(['gen', 'types', 'typescript', '--schema', 'public', '--db-url', `"${url}"`], { encoding: 'utf8' });
+  // Reads the schema from the LOCAL stack (npm run db:start).
+  const r = run(['gen', 'types', 'typescript', '--local', '--schema', 'public'], { encoding: 'utf8' });
   if (r.status !== 0) {
     console.error(r.stderr);
     process.exit(r.status ?? 1);
@@ -734,7 +759,7 @@ if (cmd === 'push') {
   writeFileSync('src/lib/database.types.ts', r.stdout);
   console.log('wrote src/lib/database.types.ts');
 } else {
-  console.error('usage: node scripts/db.mjs push|types <env file>');
+  console.error('usage: node scripts/db.mjs push|types');
   process.exit(1);
 }
 ```
@@ -767,7 +792,7 @@ const url = process.env.VITE_SUPABASE_URL;
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !anonKey || !serviceKey) {
-  throw new Error('Fill .env.test with the crochet-test project keys before running database tests');
+  throw new Error('Run `npm run db:start` and fill .env.test from `npx supabase status -o env` before running database tests');
 }
 
 const noSession = { auth: { persistSession: false, autoRefreshToken: false } };
@@ -905,7 +930,7 @@ test('deleting a pattern type leaves its patterns untyped', async () => {
 - [ ] **Step 4: Run to verify failure**
 
 Run: `npm run test:db`
-Expected: FAIL. The first test fails because `relation "public.pattern_types" does not exist` (the schema hasn't been pushed yet).
+Expected: FAIL. The first test fails because `relation "public.pattern_types" does not exist` (the schema hasn't been applied yet).
 
 - [ ] **Step 5: Write the migration `supabase/migrations/20260924000001_schema.sql`**
 
@@ -1090,9 +1115,9 @@ create trigger seed_pattern_types after insert on auth.users
   for each row execute function public.seed_pattern_types();
 ```
 
-- [ ] **Step 6: Push to the test project and run the tests**
+- [ ] **Step 6: Apply the migration locally and run the tests**
 
-Run: `npm run db:push:test`. Expected: `Applying migration 20260924000001_schema.sql... Finished supabase db push.`
+Run: `npm run db:reset`. Expected: `Applying migration 20260924000001_schema.sql...`, then `Finished supabase db reset`.
 Run: `npm run test:db`. Expected: PASS (all schema tests).
 
 - [ ] **Step 7: Generate the TypeScript types**
@@ -1288,9 +1313,9 @@ left join public.project_summary ps on ps.project_id = pr.id
 group by pa.id, pa.user_id;
 ```
 
-- [ ] **Step 4: Push and run the tests**
+- [ ] **Step 4: Apply locally and run the tests**
 
-Run: `npm run db:push:test`, then `npm run test:db`. Expected: PASS (schema and views tests).
+Run: `npm run db:reset`, then `npm run test:db`. Expected: PASS (schema and views tests).
 
 - [ ] **Step 5: Regenerate types and commit**
 
@@ -1519,9 +1544,9 @@ $$;
 
 Note on `start_timer`: `now()` is the transaction start time, so the stopped session always ends strictly after it started (it began in an earlier transaction), which satisfies the `ended_at > started_at` check.
 
-- [ ] **Step 4: Push and run the tests**
+- [ ] **Step 4: Apply locally and run the tests**
 
-Run: `npm run db:push:test`, then `npm run test:db`. Expected: PASS (all database tests so far).
+Run: `npm run db:reset`, then `npm run test:db`. Expected: PASS (all database tests so far).
 
 - [ ] **Step 5: Regenerate types and commit**
 
@@ -1615,13 +1640,13 @@ create policy "own folder delete" on storage.objects for delete to authenticated
          and (storage.foldername(name))[1] = auth.uid()::text);
 ```
 
-- [ ] **Step 4: Push and run the tests**
+- [ ] **Step 4: Apply locally and run the tests**
 
-Run: `npm run db:push:test`, then `npm run test:db`. Expected: PASS (all database tests).
+Run: `npm run db:reset`, then `npm run test:db`. Expected: PASS (all database tests).
 
 - [ ] **Step 5: Push everything to the real project and commit**
 
-Run: `npm run db:push`. Expected: the four migrations applied to the **crochet** project.
+Run: `npm run db:push` (needs `.env` with the real project's `DB_URL`). Expected: the four migrations applied to the **crochet** project.
 
 ```bash
 git add supabase
@@ -5277,6 +5302,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  server: { port: 7420, strictPort: true },
+  preview: { port: 7420, strictPort: true },
   plugins: [
     react(),
     tailwindcss(),
@@ -5340,11 +5367,11 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: 'e2e',
   timeout: 60_000,
-  use: { ...devices['Pixel 7'], baseURL: 'http://localhost:5174' },
+  use: { ...devices['Pixel 7'], baseURL: 'http://localhost:7421' },
   webServer: {
-    // "--mode test" makes Vite read .env.test, so the app talks to the crochet-test project
-    command: 'npx vite --mode test --port 5174 --strictPort',
-    url: 'http://localhost:5174',
+    // "--mode test" makes Vite read .env.test, so the app talks to the local Supabase stack
+    command: 'npx vite --mode test --port 7421 --strictPort',
+    url: 'http://localhost:7421',
     reuseExistingServer: false,
   },
 });
@@ -5427,7 +5454,7 @@ test('pattern → project → timer → rows → yarn → stash', async ({ page 
 
 - [ ] **Step 5: Run the end-to-end test**
 
-Run: `npx playwright install chromium`, then `npm run e2e`.
+Run: `npm run db:start` (if it isn't running), `npx playwright install chromium`, then `npm run e2e`.
 Expected: `1 passed`.
 
 - [ ] **Step 6: Deploy**
