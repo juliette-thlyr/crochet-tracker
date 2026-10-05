@@ -27,13 +27,55 @@ export function usePatternTypes() {
   });
 }
 
+/** Type names are unique per user; turn the database's unique violation into a readable message. */
+function typeError(error: { code?: string }) {
+  return error.code === '23505' ? new Error('You already have a type with that name.') : error;
+}
+
 export function useCreatePatternType() {
   const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ name, position }: { name: string; position: number }) => {
       const { data, error } = await supabase.from('pattern_types').insert({ name: name.trim(), position }).select().single();
-      if (error) throw error;
+      if (error) throw typeError(error);
       return data;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function useRenamePatternType() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { error } = await supabase.from('pattern_types').update({ name: name.trim() }).eq('id', id);
+      if (error) throw typeError(error);
+    },
+    onSuccess: invalidate,
+  });
+}
+
+/** Swaps the positions of two types. */
+export function useMovePatternType() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async ({ a, b }: { a: PatternType; b: PatternType }) => {
+      const one = await supabase.from('pattern_types').update({ position: b.position }).eq('id', a.id);
+      if (one.error) throw one.error;
+      const two = await supabase.from('pattern_types').update({ position: a.position }).eq('id', b.id);
+      if (two.error) throw two.error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+/** Patterns of a deleted type become untyped (on delete set null). */
+export function useDeletePatternType() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('pattern_types').delete().eq('id', id);
+      if (error) throw error;
     },
     onSuccess: invalidate,
   });

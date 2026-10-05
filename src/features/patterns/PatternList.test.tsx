@@ -37,3 +37,8 @@ test('cards show type, parts, hook and stats', () => {
   expect(card).toHaveTextContent('Made 1× · avg 2h 00m · 2.4 sk');
   expect(screen.getByRole('link', { name: /Teddy bear/ })).toHaveTextContent('Not made yet');
 });
+
+test('links to the pattern type manager', () => {
+  renderWithProviders(<PatternList />);
+  expect(screen.getByRole('link', { name: 'Manage types' })).toHaveAttribute('href', '/patterns/types');
+});

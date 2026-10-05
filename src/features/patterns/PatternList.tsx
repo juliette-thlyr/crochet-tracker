@@ -34,7 +34,10 @@ export default function PatternList() {
     <div className="flex flex-col gap-2.5 p-4">
       <header className="flex items-center justify-between pt-2">
         <h1 className="text-4xl">Patterns</h1>
-        <Link to="/patterns/new" className="flex h-11 items-center rounded-full bg-patterns px-5 text-white">+ Add</Link>
+        <span className="flex items-center gap-2">
+          <Link to="/patterns/types" className="flex h-11 items-center px-2 text-patterns">Manage types</Link>
+          <Link to="/patterns/new" className="flex h-11 items-center rounded-full bg-patterns px-5 text-white">+ Add</Link>
+        </span>
       </header>
       <TypeChips chips={chips} selected={selected} onSelect={setSelected} tone="patterns" />
       {shown.map((p) => (

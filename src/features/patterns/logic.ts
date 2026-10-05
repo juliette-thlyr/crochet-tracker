@@ -16,3 +16,8 @@ export function cleanPartDrafts(drafts: PartDraft[]) {
     .filter((d) => d.name !== '')
     .map((d, position) => ({ ...d, position }));
 }
+
+/** Position for a new type: after the last one, even when positions have gaps. */
+export function nextTypePosition(types: { position: number }[]): number {
+  return types.reduce((max, t) => Math.max(max, t.position + 1), 0);
+}

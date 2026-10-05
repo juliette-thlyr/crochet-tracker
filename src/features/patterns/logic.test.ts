@@ -1,4 +1,4 @@
-import { buildTypeChips, cleanPartDrafts } from './logic';
+import { buildTypeChips, cleanPartDrafts, nextTypePosition } from './logic';
 
 const types = [
   { id: 't1', name: 'Amigurumi' },
@@ -25,4 +25,9 @@ test('cleanPartDrafts drops blank rows, trims names, numbers positions', () => {
     { name: 'Head', count: 1, total_rows: 24, position: 0 },
     { name: 'Leg', count: 1, total_rows: null, position: 1 },
   ]);
+});
+
+test('nextTypePosition goes after the highest position', () => {
+  expect(nextTypePosition([])).toBe(0);
+  expect(nextTypePosition([{ position: 0 }, { position: 5 }, { position: 2 }])).toBe(6);
 });

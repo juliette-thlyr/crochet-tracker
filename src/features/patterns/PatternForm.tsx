@@ -5,7 +5,7 @@ import HookSelect from '../../components/HookSelect';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { MAX_PDF_BYTES, uploadFile } from '../../lib/storage';
 import { useCreatePatternType, usePattern, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
-import type { PartDraft } from './logic';
+import { nextTypePosition, type PartDraft } from './logic';
 
 const input = 'h-12 rounded-xl border border-line bg-surface px-3';
 const label = 'flex flex-col gap-1.5 text-sm text-muted';
@@ -58,7 +58,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   function addType() {
     if (!newType?.trim()) return;
     createType.mutate(
-      { name: newType, position: types.data?.length ?? 0 },
+      { name: newType, position: nextTypePosition(types.data ?? []) },
       { onSuccess: (t) => { set('pattern_type_id', t.id); setNewType(null); } },
     );
   }
