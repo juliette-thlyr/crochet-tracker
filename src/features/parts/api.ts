@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase } from '../../lib/supabase';
 import type { Part } from '../projects/api';
 
@@ -25,13 +26,8 @@ export function usePart(id: string) {
   });
 }
 
-function useInvalidate() {
-  const qc = useQueryClient();
-  return () => Promise.all(['parts', 'projects', 'yarns', 'timer'].map((k) => qc.invalidateQueries({ queryKey: [k] })));
-}
-
 export function useSaveSession() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (s: { id?: string; part_id: string; started_at: string; ended_at: string }) => {
       const { id, ...fields } = s;
@@ -45,7 +41,7 @@ export function useSaveSession() {
 }
 
 export function useDeleteSession() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('time_sessions').delete().eq('id', id);
@@ -56,7 +52,7 @@ export function useDeleteSession() {
 }
 
 export function useSetYarnUsage() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ partId, yarnId, skeins }: { partId: string; yarnId: string; skeins: number }) => {
       const { error } = await supabase
@@ -69,7 +65,7 @@ export function useSetYarnUsage() {
 }
 
 export function useRemoveYarnUsage() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('part_yarns').delete().eq('id', id);

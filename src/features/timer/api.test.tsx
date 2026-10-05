@@ -3,12 +3,12 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { useSetRow, type RunningSession } from './api';
 
-const gate = vi.hoisted(() => ({ resolvers: [] as (() => void)[] }));
+const gate = vi.hoisted(() => ({ resolvers: [] as ((r?: { error: unknown }) => void)[] }));
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     from: () => ({
       update: () => ({
-        eq: () => new Promise((resolve) => { gate.resolvers.push(() => resolve({ error: null })); }),
+        eq: () => new Promise((resolve) => { gate.resolvers.push((r = { error: null }) => resolve(r)); }),
       }),
     }),
   },
@@ -21,12 +21,14 @@ function setup() {
     part: { id: 'pt1', name: 'Leg 1', current_row: 12, total_rows: 18, project: { id: 'pr1', name: 'T' }, time_sessions: [] },
   };
   qc.setQueryData(['timer', 'running'], session);
+  qc.setQueryData(['parts', 'pt1'], { id: 'pt1', name: 'Leg 1', current_row: 12 });
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={qc}>{children}</QueryClientProvider>
   );
   const { result } = renderHook(() => useSetRow(), { wrapper });
   const row = () => qc.getQueryData<RunningSession>(['timer', 'running'])?.part.current_row;
-  return { qc, result, row };
+  const partRow = () => qc.getQueryData<{ current_row: number | null }>(['parts', 'pt1'])?.current_row;
+  return { qc, result, row, partRow };
 }
 
 beforeEach(() => { gate.resolvers = []; });
@@ -54,4 +56,30 @@ test('quick taps are not lost: refetch waits for the last pending tap', async ()
   await act(async () => { gate.resolvers[1](); });
   await waitFor(() => expect(invalidate).toHaveBeenCalled());
   expect(row()).toBe(14);
+});
+
+test('useSetRow also patches the part page cache optimistically', async () => {
+  const { result, partRow } = setup();
+  result.current.mutate({ partId: 'pt1', row: 13 });
+  await waitFor(() => expect(partRow()).toBe(13));
+  await act(async () => { gate.resolvers[0](); });
+});
+
+test('a failed row save rolls back both caches', async () => {
+  const { result, row, partRow } = setup();
+  result.current.mutate({ partId: 'pt1', row: 13 });
+  await waitFor(() => expect(partRow()).toBe(13));
+  await act(async () => { gate.resolvers[0]({ error: { message: 'offline' } }); });
+  await waitFor(() => expect(result.current.isError).toBe(true));
+  expect(partRow()).toBe(12);
+  expect(row()).toBe(12);
+});
+
+test('only the running session of the same part is patched', async () => {
+  const { qc, result, row } = setup();
+  qc.setQueryData(['parts', 'pt2'], { id: 'pt2', current_row: 3 });
+  result.current.mutate({ partId: 'pt2', row: 4 });
+  await waitFor(() => expect(qc.getQueryData<{ current_row: number }>(['parts', 'pt2'])?.current_row).toBe(4));
+  expect(row()).toBe(12);
+  await act(async () => { gate.resolvers[0](); });
 });

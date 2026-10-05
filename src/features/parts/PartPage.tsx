@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import ErrorBox from '../../components/ErrorBox';
 import { formatDuration, formatSkeins, sessionSeconds, sumSeconds } from '../../lib/calc';
 import { useDeletePart, useUpdatePart } from '../projects/api';
 import { useYarns } from '../stash/api';
+import { useSetRow } from '../timer/api';
 import { useDeleteSession, usePart, useRemoveYarnUsage, useSaveSession, useSetYarnUsage, type Session } from './api';
 import RowCounter from './RowCounter';
 import SessionForm from './SessionForm';
@@ -19,6 +20,7 @@ export default function PartPage() {
   const navigate = useNavigate();
   const { data: part, isPending, error, refetch } = usePart(id);
   const updatePart = useUpdatePart();
+  const setRow = useSetRow();
   const deletePart = useDeletePart();
   const saveSession = useSaveSession();
   const deleteSession = useDeleteSession();
@@ -29,15 +31,12 @@ export default function PartPage() {
   const [addingYarn, setAddingYarn] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const [row, setRow] = useState<number | null>(part?.current_row ?? null);
-  const serverRow = part?.current_row;
-  useEffect(() => { setRow(serverRow ?? null); }, [serverRow]);
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
   if (isPending) return <p className="p-4 text-muted">Loading…</p>;
 
   const mutationError =
-    updatePart.error ?? deletePart.error ?? saveSession.error ?? deleteSession.error ?? setYarn.error ?? removeYarn.error;
+    updatePart.error ?? setRow.error ?? deletePart.error ?? saveSession.error ?? deleteSession.error ?? setYarn.error ?? removeYarn.error;
   const now = new Date();
   const patch = (p: Parameters<typeof updatePart.mutate>[0]['patch']) => updatePart.mutate({ id, patch: p });
 
@@ -66,7 +65,7 @@ export default function PartPage() {
       </div>
 
       <section className="flex flex-col gap-3 rounded-3xl border border-line bg-surface p-4">
-        <RowCounter current={row} total={part.total_rows} onChange={(r) => { setRow(r); patch({ current_row: r }); }} />
+        <RowCounter current={part.current_row} total={part.total_rows} onChange={(r) => setRow.mutate({ partId: id, row: r })} />
         <label className="flex flex-col gap-1.5 text-sm text-muted">Where I stopped
           <textarea rows={2} defaultValue={part.resume_note ?? ''}
             onBlur={(e) => { if (e.target.value !== (part.resume_note ?? '')) patch({ resume_note: e.target.value || null }); }}

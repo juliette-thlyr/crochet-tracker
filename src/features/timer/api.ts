@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase } from '../../lib/supabase';
 import type { RecentRow } from './logic';
 
@@ -43,13 +44,8 @@ export function useRecentParts() {
   });
 }
 
-function useInvalidate() {
-  const qc = useQueryClient();
-  return () => Promise.all(['timer', 'projects', 'parts'].map((k) => qc.invalidateQueries({ queryKey: [k] })));
-}
-
 export function useStartTimer() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (partId: string) => {
       const { error } = await supabase.rpc('start_timer', { p_part_id: partId });
@@ -60,7 +56,7 @@ export function useStartTimer() {
 }
 
 export function useStopTimer() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async () => {
       const { error } = await supabase.rpc('stop_timer');
@@ -72,21 +68,31 @@ export function useStopTimer() {
 
 export function useSetRow() {
   const qc = useQueryClient();
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationKey: ['setRow'],
     mutationFn: async ({ partId, row }: { partId: string; row: number }) => {
       const { error } = await supabase.from('parts').update({ current_row: Math.max(0, row) }).eq('id', partId);
       if (error) throw error;
     },
-    onMutate: async ({ row }) => {
-      await qc.cancelQueries({ queryKey: ['timer', 'running'] });
-      const prev = qc.getQueryData<RunningSession | null>(['timer', 'running']);
-      if (prev) qc.setQueryData(['timer', 'running'], { ...prev, part: { ...prev.part, current_row: Math.max(0, row) } });
-      return { prev };
+    // Patches both the timer bar and the part page right away, so quick taps always build on the latest row.
+    onMutate: async ({ partId, row }) => {
+      const value = Math.max(0, row);
+      await Promise.all([
+        qc.cancelQueries({ queryKey: ['timer', 'running'] }),
+        qc.cancelQueries({ queryKey: ['parts', partId] }),
+      ]);
+      const prevRunning = qc.getQueryData<RunningSession | null>(['timer', 'running']);
+      const prevPart = qc.getQueryData<{ current_row: number | null }>(['parts', partId]);
+      if (prevRunning && prevRunning.part.id === partId) {
+        qc.setQueryData(['timer', 'running'], { ...prevRunning, part: { ...prevRunning.part, current_row: value } });
+      }
+      if (prevPart) qc.setQueryData(['parts', partId], { ...prevPart, current_row: value });
+      return { prevRunning, prevPart };
     },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev !== undefined) qc.setQueryData(['timer', 'running'], ctx.prev);
+    onError: (_e, { partId }, ctx) => {
+      if (ctx?.prevRunning !== undefined) qc.setQueryData(['timer', 'running'], ctx.prevRunning);
+      if (ctx?.prevPart !== undefined) qc.setQueryData(['parts', partId], ctx.prevPart);
     },
     onSettled: async () => {
       // Only refetch once the last pending tap has settled, so an early refetch can't roll back newer taps.

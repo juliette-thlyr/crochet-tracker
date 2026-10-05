@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase, type Tables } from '../../lib/supabase';
 import { cleanPartDrafts, type PartDraft } from './logic';
 
@@ -27,14 +28,14 @@ export function usePatternTypes() {
 }
 
 export function useCreatePatternType() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ name, position }: { name: string; position: number }) => {
       const { data, error } = await supabase.from('pattern_types').insert({ name: name.trim(), position }).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pattern-types'] }),
+    onSuccess: invalidate,
   });
 }
 
@@ -78,7 +79,7 @@ export function usePattern(id: string | undefined) {
 }
 
 export function useSavePattern() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ pattern, parts }: { pattern: PatternInput; parts: PartDraft[] }): Promise<string> => {
       const { id, ...fields } = pattern;
@@ -103,29 +104,29 @@ export function useSavePattern() {
       }
       return patternId;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['patterns'] }),
+    onSuccess: invalidate,
   });
 }
 
 export function useDeletePattern() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('patterns').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['patterns'] }),
+    onSuccess: invalidate,
   });
 }
 
 export function useStartProject() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (patternId: string): Promise<string> => {
       const { data, error } = await supabase.rpc('start_project_from_pattern', { p_pattern_id: patternId });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
+    onSuccess: invalidate,
   });
 }

@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { resizeImage } from '../../lib/images';
+import { useInvalidateAll } from '../../lib/invalidate';
 import { uploadFile } from '../../lib/storage';
 import { supabase, type Tables } from '../../lib/supabase';
 
@@ -23,15 +24,6 @@ export type ProjectListItem = Project & {
   partsDone: number;
   seconds: number;
 };
-
-function useInvalidate() {
-  const qc = useQueryClient();
-  return () => Promise.all([
-    qc.invalidateQueries({ queryKey: ['projects'] }),
-    qc.invalidateQueries({ queryKey: ['yarns'] }),
-    qc.invalidateQueries({ queryKey: ['patterns'] }),
-  ]);
-}
 
 export function useProjects() {
   return useQuery({
@@ -78,7 +70,7 @@ export function useProject(id: string) {
 }
 
 export function useUpdateProject() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Project> }) => {
       const { error } = await supabase.from('projects').update(patch).eq('id', id);
@@ -89,7 +81,7 @@ export function useUpdateProject() {
 }
 
 export function useCreateBlankProject() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (): Promise<string> => {
       const { data, error } = await supabase
@@ -104,7 +96,7 @@ export function useCreateBlankProject() {
 }
 
 export function useDeleteProject() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('projects').delete().eq('id', id);
@@ -115,7 +107,7 @@ export function useDeleteProject() {
 }
 
 export function useAddPart() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ projectId, name, position }: { projectId: string; name: string; position: number }) => {
       const { error } = await supabase.from('parts').insert({ project_id: projectId, name: name.trim(), position });
@@ -126,7 +118,7 @@ export function useAddPart() {
 }
 
 export function useUpdatePart() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Part> }) => {
       const { error } = await supabase.from('parts').update(patch).eq('id', id);
@@ -137,7 +129,7 @@ export function useUpdatePart() {
 }
 
 export function useDeletePart() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('parts').delete().eq('id', id);
@@ -149,7 +141,7 @@ export function useDeletePart() {
 
 /** Swaps the positions of two parts. */
 export function useMovePart() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ a, b }: { a: Part; b: Part }) => {
       const one = await supabase.from('parts').update({ position: b.position }).eq('id', a.id);
@@ -162,7 +154,7 @@ export function useMovePart() {
 }
 
 export function usePlanYarn() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ projectId, yarnId, skeins }: { projectId: string; yarnId: string; skeins: number }) => {
       const { error } = await supabase
@@ -175,7 +167,7 @@ export function usePlanYarn() {
 }
 
 export function useAddProjectPhoto() {
-  const invalidate = useInvalidate();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ projectId, file }: { projectId: string; file: File }) => {
       const path = await uploadFile('project-photos', await resizeImage(file), 'jpg');

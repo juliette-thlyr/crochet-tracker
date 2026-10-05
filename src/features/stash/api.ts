@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase } from '../../lib/supabase';
 import { mergeYarnUsage, type Yarn, type YarnWithStock } from './logic';
 
@@ -67,7 +68,7 @@ export function toYarnInput(y: YarnWithStock): YarnInput {
 }
 
 export function useSaveYarn() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async ({ id, ...fields }: YarnInput): Promise<string> => {
       const q = id
@@ -77,12 +78,12 @@ export function useSaveYarn() {
       if (error) throw error;
       return data.id;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['yarns'] }),
+    onSuccess: invalidate,
   });
 }
 
 export function useDeleteYarn() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateAll();
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('yarns').delete().eq('id', id);
@@ -91,6 +92,6 @@ export function useDeleteYarn() {
       }
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['yarns'] }),
+    onSuccess: invalidate,
   });
 }
