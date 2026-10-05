@@ -40,6 +40,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   const [p, setP] = useState(initial);
   const [parts, setParts] = useState(initialParts);
   const [pdf, setPdf] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<unknown>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [newType, setNewType] = useState<string | null>(null);
   const set = <K extends keyof PatternInput>(k: K, v: PatternInput[K]) => setP({ ...p, [k]: v });
@@ -64,7 +65,16 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    const pdf_path = pdf ? await uploadFile('pattern-pdfs', pdf, 'pdf') : p.pdf_path;
+    setUploadError(null);
+    let pdf_path = p.pdf_path;
+    if (pdf) {
+      try {
+        pdf_path = await uploadFile('pattern-pdfs', pdf, 'pdf');
+      } catch (err) {
+        setUploadError(err);
+        return;
+      }
+    }
     save.mutate({ pattern: { ...p, pdf_path }, parts }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
   }
 
@@ -75,6 +85,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         <h1 className="text-2xl">{initial.id ? 'Edit pattern' : 'New pattern'}</h1>
         <button type="submit" disabled={save.isPending} className="min-h-11 text-patterns">Save</button>
       </header>
+      {uploadError != null && <ErrorBox error={uploadError} />}
       {save.error && <ErrorBox error={save.error} />}
 
       <div className="flex gap-2">

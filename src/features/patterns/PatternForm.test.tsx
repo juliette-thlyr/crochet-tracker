@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/render';
+import { uploadFile } from '../../lib/storage';
 import PatternForm from './PatternForm';
 
 const save = vi.fn();
@@ -47,4 +48,18 @@ test('tapping the selected type again clears it', async () => {
   expect(chip).toHaveAttribute('aria-checked', 'true');
   await userEvent.click(chip);
   expect(chip).toHaveAttribute('aria-checked', 'false');
+});
+
+test('shows an error and does not save when the PDF upload fails', async () => {
+  save.mockClear();
+  vi.mocked(uploadFile).mockRejectedValueOnce(new Error('Upload failed'));
+  const { container } = renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
+  await userEvent.type(screen.getByLabelText('Name'), 'T-rex');
+  await userEvent.upload(
+    container.querySelector('input[type=file]') as HTMLInputElement,
+    new File(['x'], 'p.pdf', { type: 'application/pdf' }),
+  );
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Upload failed');
+  expect(save).not.toHaveBeenCalled();
 });
