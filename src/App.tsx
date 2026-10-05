@@ -5,6 +5,9 @@ import { useSession } from './features/auth/useSession';
 import PatternForm from './features/patterns/PatternForm';
 import PatternList from './features/patterns/PatternList';
 import PatternPage from './features/patterns/PatternPage';
+import NewProject from './features/projects/NewProject';
+import ProjectList from './features/projects/ProjectList';
+import ProjectPage from './features/projects/ProjectPage';
 import StashList from './features/stash/StashList';
 import YarnForm from './features/stash/YarnForm';
 import YarnPage from './features/stash/YarnPage';
@@ -16,7 +19,9 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<h1 className="p-4 text-3xl">Projects</h1>} />
+        <Route index element={<ProjectList />} />
+        <Route path="projects/new" element={<NewProject />} />
+        <Route path="projects/:id" element={<ProjectPage />} />
         <Route path="patterns" element={<PatternList />} />
         <Route path="patterns/new" element={<PatternForm />} />
         <Route path="patterns/:id" element={<PatternPage />} />
