@@ -6,6 +6,7 @@ import { formatDuration, formatHook, formatSkeins, hookLabel, hookSizeOptions, r
 import { STATUS_LABELS, type ProjectStatus } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useYarns } from '../stash/api';
+import StartTimerButton from '../timer/StartTimerButton';
 import {
   useAddPart, useAddProjectPhoto, useDeletePart, useDeleteProject, useMovePart, usePlanYarn, useProject,
   useUpdatePart, useUpdateProject, type ProjectPart,
@@ -121,6 +122,7 @@ export default function ProjectPage() {
               </span>
             </Link>
             <span className={`text-sm ${part.done ? 'text-stash' : ''}`}>{rowLabel(part.current_row, part.total_rows)}</span>
+            {!editing && <StartTimerButton partId={part.id} label={part.name} />}
             {editing && (
               <span className="flex">
                 <button type="button" aria-label={`Move ${part.name} up`} disabled={i === 0}

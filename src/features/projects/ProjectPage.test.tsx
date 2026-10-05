@@ -33,6 +33,7 @@ vi.mock('./api', () => ({
   useDeleteProject: () => ({ mutate: vi.fn() }),
 }));
 vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [] }) }));
+vi.mock('../timer/StartTimerButton', () => ({ default: () => null }));
 vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
 
 test('shows parts with rows, resume notes and progress', () => {

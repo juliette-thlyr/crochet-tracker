@@ -9,6 +9,7 @@ import PartPage from './features/parts/PartPage';
 import NewProject from './features/projects/NewProject';
 import ProjectList from './features/projects/ProjectList';
 import ProjectPage from './features/projects/ProjectPage';
+import TimerTab from './features/timer/TimerTab';
 import StashList from './features/stash/StashList';
 import YarnForm from './features/stash/YarnForm';
 import YarnPage from './features/stash/YarnPage';
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="patterns/new" element={<PatternForm />} />
         <Route path="patterns/:id" element={<PatternPage />} />
         <Route path="patterns/:id/edit" element={<PatternForm />} />
+        <Route path="timer" element={<TimerTab />} />
         <Route path="stash" element={<StashList />} />
         <Route path="stash/new" element={<YarnForm />} />
         <Route path="stash/:id" element={<YarnPage />} />
