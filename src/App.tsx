@@ -5,6 +5,7 @@ import { useSession } from './features/auth/useSession';
 import PatternForm from './features/patterns/PatternForm';
 import PatternList from './features/patterns/PatternList';
 import PatternPage from './features/patterns/PatternPage';
+import PartPage from './features/parts/PartPage';
 import NewProject from './features/projects/NewProject';
 import ProjectList from './features/projects/ProjectList';
 import ProjectPage from './features/projects/ProjectPage';
@@ -22,6 +23,7 @@ export default function App() {
         <Route index element={<ProjectList />} />
         <Route path="projects/new" element={<NewProject />} />
         <Route path="projects/:id" element={<ProjectPage />} />
+        <Route path="parts/:id" element={<PartPage />} />
         <Route path="patterns" element={<PatternList />} />
         <Route path="patterns/new" element={<PatternForm />} />
         <Route path="patterns/:id" element={<PatternPage />} />
