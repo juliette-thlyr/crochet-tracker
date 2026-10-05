@@ -57,7 +57,7 @@ test('pattern → project → timer → rows → yarn → stash', async ({ page 
   await page.getByRole('button', { name: '+ row' }).click();
   await page.getByRole('button', { name: '+ row' }).click();
   await expect(bar).toContainText('Row 2/18');
-  await page.getByRole('button', { name: 'Stop timer' }).first().click();
+  await page.getByRole('button', { name: 'Stop timer', exact: true }).click();
   await expect(bar).toBeHidden();
 
   // Record yarn on Leg 1 and check the stash

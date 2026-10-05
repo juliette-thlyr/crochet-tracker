@@ -10,7 +10,7 @@ export default function StartTimerButton({ partId, label }: { partId: string; la
   return (
     <span className="flex flex-col items-center">
       {isRunning ? (
-        <button type="button" aria-label="Stop timer" title={title} onClick={() => stop.mutate()}
+        <button type="button" aria-label={`Stop timer for ${label}`} title={title} onClick={() => stop.mutate()}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-timer text-white">
           <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect width="12" height="12" rx="2" fill="currentColor" /></svg>
         </button>
