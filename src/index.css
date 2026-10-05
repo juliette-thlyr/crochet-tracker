@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --font-hand: "Indie Flower", cursive;
+
+  --color-bg: #E4EEF9;
+  --color-surface: #FFFFFF;
+  --color-line: #D3E0EE;
+  --color-divider: #E6EEF7;
+  --color-ink: #2B1E2F;
+  --color-muted: #6E5C6B;
+
+  --color-projects: #B8336A;
+  --color-projects-dark: #85204A;
+  --color-projects-soft: #FBE3EC;
+  --color-patterns: #6D4BC3;
+  --color-patterns-dark: #4F3A8F;
+  --color-patterns-soft: #E9E2FA;
+  --color-stash: #0E7C7B;
+  --color-stash-dark: #0B5B5A;
+  --color-stash-soft: #D5F0EC;
+  --color-timer: #4169E1;
+  --color-timer-dark: #3457C8;
+  --color-timer-darker: #2A48B0;
+  --color-row: #7DB8F2;
+  --color-row-ink: #0A2A52;
+  --color-sun: #F6B93B;
+  --color-sun-track: #FDEFC8;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: 16px;
+  margin: 0;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
