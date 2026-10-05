@@ -52,6 +52,15 @@ describe('start_project_from_pattern', () => {
     expect(Number(data!.hook_size_mm)).toBe(3.5);
   });
 
+  test('a pattern without parts gives the project a "Main" part', async () => {
+    const { data: pattern } = await u.client.from('patterns').insert({ name: 'Coaster' }).select().single();
+    const { data: projectId, error } = await u.client.rpc('start_project_from_pattern', { p_pattern_id: pattern!.id });
+    expect(error).toBeNull();
+    const { data: parts } = await u.client
+      .from('parts').select('name, position, total_rows').eq('project_id', projectId).order('position');
+    expect(parts).toEqual([{ name: 'Main', position: 0, total_rows: null }]);
+  });
+
   test('fails for a pattern the user cannot see, creating nothing', async () => {
     const foreign = await tRexPattern(other.client);
     const before = await u.client.from('projects').select('id', { count: 'exact', head: true });
