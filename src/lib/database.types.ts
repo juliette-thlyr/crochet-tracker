@@ -26,6 +26,12 @@ isOneToOne: false
       foreignKeyName: "part_yarns_yarn_id_fkey"
       columns: ["yarn_id"]
 isOneToOne: false
+      referencedRelation: "yarn_stock"
+      referencedColumns: ["yarn_id"]
+    },{
+      foreignKeyName: "part_yarns_yarn_id_fkey"
+      columns: ["yarn_id"]
+isOneToOne: false
       referencedRelation: "yarns"
       referencedColumns: ["id"]
     }
@@ -45,6 +51,12 @@ isOneToOne: false
       foreignKeyName: "parts_project_id_fkey"
       columns: ["project_id"]
 isOneToOne: false
+      referencedRelation: "project_summary"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "parts_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
     }
@@ -61,6 +73,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "pattern_parts_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "pattern_stats"
+      referencedColumns: ["pattern_id"]
+    },{
       foreignKeyName: "pattern_parts_pattern_id_fkey"
       columns: ["pattern_id"]
 isOneToOne: false
@@ -115,6 +133,12 @@ isOneToOne: false
       foreignKeyName: "project_photos_project_id_fkey"
       columns: ["project_id"]
 isOneToOne: false
+      referencedRelation: "project_summary"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "project_photos_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
     }
@@ -134,8 +158,20 @@ isOneToOne: false
       foreignKeyName: "project_yarns_project_id_fkey"
       columns: ["project_id"]
 isOneToOne: false
+      referencedRelation: "project_summary"
+      referencedColumns: ["project_id"]
+    },{
+      foreignKeyName: "project_yarns_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
       referencedRelation: "projects"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_yarns_yarn_id_fkey"
+      columns: ["yarn_id"]
+isOneToOne: false
+      referencedRelation: "yarn_stock"
+      referencedColumns: ["yarn_id"]
     },{
       foreignKeyName: "project_yarns_yarn_id_fkey"
       columns: ["yarn_id"]
@@ -156,6 +192,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "projects_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "pattern_stats"
+      referencedColumns: ["pattern_id"]
+    },{
       foreignKeyName: "projects_pattern_id_fkey"
       columns: ["pattern_id"]
 isOneToOne: false
@@ -198,7 +240,34 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "pattern_stats": {
+                  Row: {
+                    "avg_seconds": number | null,"avg_skeins": number | null,"pattern_id": string | null,"times_made": number | null,"user_id": string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"project_summary": {
+                  Row: {
+                    "parts_done": number | null,"parts_total": number | null,"project_id": string | null,"seconds": number | null,"skeins": number | null,"user_id": string | null
+                  }
+                  Insert: {
+                           "parts_done"?: never,"parts_total"?: never,"project_id"?: string | null,"seconds"?: never,"skeins"?: never,"user_id"?: string | null
+                         }
+                        Update: {
+                           "parts_done"?: never,"parts_total"?: never,"project_id"?: string | null,"seconds"?: never,"skeins"?: never,"user_id"?: string | null
+                         }
+                        Relationships: [
+                    
+                  ]
+                },"yarn_stock": {
+                  Row: {
+                    "free": number | null,"owned": number | null,"reserved": number | null,"used": number | null,"user_id": string | null,"yarn_id": string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Functions: {
             [_ in never]: never
