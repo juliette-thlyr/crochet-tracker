@@ -270,7 +270,28 @@ isOneToOne: false
                 }
           }
           Functions: {
-            [_ in never]: never
+            "start_project_from_pattern":
+{ Args: { "p_pattern_id": string }; Returns: string
+                           },
+"start_timer":
+{ Args: { "p_part_id": string }; Returns: {
+              "created_at": string,
+"ended_at": string | null,
+"id": string,
+"part_id": string,
+"started_at": string,
+"updated_at": string,
+"user_id": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "time_sessions"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"stop_timer":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           }
           }
           Enums: {
             "project_status": "idea"|"in_progress"|"finished"|"frogged","yarn_weight": "lace"|"fingering"|"sport"|"dk"|"worsted"|"aran"|"bulky"|"super_bulky"|"jumbo"
