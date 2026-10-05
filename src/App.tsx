@@ -2,6 +2,9 @@ import { Route, Routes } from 'react-router';
 import Layout from './components/Layout';
 import Login from './features/auth/Login';
 import { useSession } from './features/auth/useSession';
+import PatternForm from './features/patterns/PatternForm';
+import PatternList from './features/patterns/PatternList';
+import PatternPage from './features/patterns/PatternPage';
 import StashList from './features/stash/StashList';
 import YarnForm from './features/stash/YarnForm';
 import YarnPage from './features/stash/YarnPage';
@@ -14,6 +17,10 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<h1 className="p-4 text-3xl">Projects</h1>} />
+        <Route path="patterns" element={<PatternList />} />
+        <Route path="patterns/new" element={<PatternForm />} />
+        <Route path="patterns/:id" element={<PatternPage />} />
+        <Route path="patterns/:id/edit" element={<PatternForm />} />
         <Route path="stash" element={<StashList />} />
         <Route path="stash/new" element={<YarnForm />} />
         <Route path="stash/:id" element={<YarnPage />} />
