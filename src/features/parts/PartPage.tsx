@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import ErrorBox from '../../components/ErrorBox';
@@ -29,6 +29,9 @@ export default function PartPage() {
   const [addingYarn, setAddingYarn] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [row, setRow] = useState<number | null>(part?.current_row ?? null);
+  const serverRow = part?.current_row;
+  useEffect(() => { setRow(serverRow ?? null); }, [serverRow]);
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
   if (isPending) return <p className="p-4 text-muted">Loading…</p>;
@@ -63,7 +66,7 @@ export default function PartPage() {
       </div>
 
       <section className="flex flex-col gap-3 rounded-3xl border border-line bg-surface p-4">
-        <RowCounter current={part.current_row} total={part.total_rows} onChange={(row) => patch({ current_row: row })} />
+        <RowCounter current={row} total={part.total_rows} onChange={(r) => { setRow(r); patch({ current_row: r }); }} />
         <label className="flex flex-col gap-1.5 text-sm text-muted">Where I stopped
           <textarea rows={2} defaultValue={part.resume_note ?? ''}
             onBlur={(e) => { if (e.target.value !== (part.resume_note ?? '')) patch({ resume_note: e.target.value || null }); }}
@@ -77,6 +80,7 @@ export default function PartPage() {
       </div>
       {sessionForm && (
         <SessionForm
+          key={sessionForm === 'new' ? 'new' : sessionForm.id}
           initial={sessionForm === 'new' ? undefined : { started_at: sessionForm.started_at, minutes: Math.round(sessionSeconds(sessionForm, now) / 60) }}
           onCancel={() => setSessionForm(null)}
           onSave={(s) => {

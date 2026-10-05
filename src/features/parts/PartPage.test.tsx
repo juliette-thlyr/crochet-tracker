@@ -12,6 +12,7 @@ vi.mock('./api', () => ({
       project: { id: 'pr1', name: 'T-rex for Léo' },
       time_sessions: [
         { id: 's1', started_at: '2026-09-23T21:05:00Z', ended_at: '2026-09-23T21:30:00Z' },
+        { id: 's2', started_at: '2026-09-22T20:00:00Z', ended_at: '2026-09-22T20:10:00Z' },
       ],
       part_yarns: [{ id: 'u1', skeins_used: 0.15, yarn: { id: 'y1', name: 'Fern green', brand: 'Drops Paris' } }],
     },
@@ -29,7 +30,7 @@ test('shows the counter, resume note, time and yarn', () => {
   renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
   expect(screen.getByRole('heading', { name: 'Leg 1' })).toBeInTheDocument();
   expect(screen.getByLabelText('Where I stopped')).toHaveValue('After the 2nd increase round');
-  expect(screen.getByText('Time · 25m')).toBeInTheDocument();
+  expect(screen.getByText('Time · 35m')).toBeInTheDocument();
   expect(screen.getByText('0.15 sk')).toBeInTheDocument();
 });
 
@@ -46,4 +47,22 @@ test('the resume note is saved when leaving the field', async () => {
   await userEvent.type(note, 'Switch to cream');
   await userEvent.tab();
   expect(updatePart).toHaveBeenCalledWith({ id: 'pt1', patch: { resume_note: 'Switch to cream' } });
+});
+
+test('two quick taps on + count two rows', async () => {
+  updatePart.mockClear();
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  const next = screen.getByRole('button', { name: 'Next row' });
+  await userEvent.click(next);
+  await userEvent.click(next);
+  expect(updatePart.mock.calls.map((c) => c[0].patch.current_row)).toEqual([13, 14]);
+});
+
+test('editing another session shows its own duration', async () => {
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  const edits = screen.getAllByRole('button', { name: 'Edit time' });
+  await userEvent.click(edits[0]);
+  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(25);
+  await userEvent.click(edits[1]);
+  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(10);
 });
