@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ErrorBox from '../../components/ErrorBox';
+import PhotoField from '../../components/PhotoField';
 import { resizeImage } from '../../lib/images';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { uploadFile } from '../../lib/storage';
@@ -72,7 +73,8 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
         <NumberField required value={y.skeins_owned} min={0} step={0.25} emptyValue={0}
           onChange={(v) => set('skeins_owned', v ?? 0)} className={input} />
       </label>
-      <label className={label}>Photo<input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></label>
+      <PhotoField label="Photo" bucket="yarn-photos" path={y.photo_path} file={photo}
+        onFile={setPhoto} onRemove={() => set('photo_path', null)} />
       <label className={label}>Shop<input className={input} value={y.bought_at ?? ''} onChange={(e) => set('bought_at', text(e.target.value))} /></label>
       <div className="flex gap-2">
         <label className={`${label} flex-1`}>Price per skein (€)
