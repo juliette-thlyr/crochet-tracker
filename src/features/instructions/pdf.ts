@@ -1,10 +1,10 @@
-import * as pdfjs from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-
-pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-
 /** Opens a PDF and renders pages to JPEG blobs (white background, quality 0.8). */
 export async function openPdf(url: string, width = 1600) {
+  const [pdfjs, { default: workerUrl }] = await Promise.all([
+    import('pdfjs-dist'),
+    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+  ]);
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
   const doc = await pdfjs.getDocument({ url }).promise;
   return {
     numPages: doc.numPages,

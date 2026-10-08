@@ -7,7 +7,6 @@ const session = vi.hoisted(() => ({ value: null as unknown }));
 vi.mock('./features/auth/useSession', () => ({ useSession: () => session.value }));
 vi.mock('./lib/supabase', () => ({ supabase: { auth: { signInWithOtp: vi.fn() } } }));
 vi.mock('./features/timer/TimerBar', () => ({ default: () => null }));
-vi.mock('./features/instructions/pdf', () => ({ openPdf: vi.fn() }));
 
 function renderApp() {
   return render(
