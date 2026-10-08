@@ -5,6 +5,7 @@ import { useRecentParts, useRunningSession, useSetRow, useStopTimer, type Runnin
 import { recentParts } from './logic';
 import StartTimerButton from './StartTimerButton';
 import { useNow } from './useNow';
+import PageTitle from '../../components/PageTitle';
 
 export default function TimerTab() {
   const { data: running } = useRunningSession();
@@ -17,7 +18,7 @@ export default function TimerTab() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <h1 className="pt-2 text-4xl">Timer</h1>
+      <PageTitle color="text-timer" className="pt-2">Timer</PageTitle>
       {error && <ErrorBox error={error} />}
       {running ? (
         runningCard(running)

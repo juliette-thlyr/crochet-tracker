@@ -7,6 +7,7 @@ import { usePatterns, usePatternTypes, type PatternListItem } from './api';
 import { buildTypeChips } from './logic';
 import PatternThumb from './PatternThumb';
 import TypeChips from './TypeChips';
+import PageTitle from '../../components/PageTitle';
 
 export function patternMeta(p: PatternListItem): string {
   const n = expandPatternParts(p.parts).length;
@@ -34,7 +35,7 @@ export default function PatternList() {
   return (
     <div className="flex flex-col gap-2.5 p-4">
       <header className="flex items-center justify-between pt-2">
-        <h1 className="text-4xl">Patterns</h1>
+        <PageTitle color="text-patterns">Patterns</PageTitle>
         <span className="flex items-center gap-2">
           <Link to="/patterns/types" className="flex h-11 items-center px-2 text-patterns">Manage types</Link>
           <Link to="/patterns/new" className="flex h-11 items-center rounded-full bg-patterns px-5 text-white">+ Add</Link>

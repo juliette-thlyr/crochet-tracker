@@ -5,6 +5,7 @@ import { STATUS_LABELS } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useProjects, type ProjectListItem } from './api';
 import { groupProjects } from './logic';
+import PageTitle from '../../components/PageTitle';
 
 export default function ProjectList() {
   const { data, isPending, error, refetch } = useProjects();
@@ -14,7 +15,7 @@ export default function ProjectList() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <header className="flex items-center justify-between pt-2">
-        <h1 className="text-4xl">Projects</h1>
+        <PageTitle color="text-projects">Projects</PageTitle>
         <Link to="/projects/new" className="flex h-11 items-center rounded-full bg-projects px-5 text-white">+ New</Link>
       </header>
       {data.length === 0 && <p className="text-muted">No projects yet. Start one from a pattern.</p>}

@@ -6,6 +6,7 @@ import { WEIGHTS, weightLabel, type YarnWeight } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useYarns } from './api';
 import { filterYarns, type YarnWithStock } from './logic';
+import PageTitle from '../../components/PageTitle';
 
 const chip = (on: boolean) =>
   `h-11 shrink-0 rounded-full px-3.5 text-sm ${on ? 'bg-stash text-white' : 'border border-line bg-surface'}`;
@@ -26,7 +27,7 @@ export default function StashList() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <header className="flex items-center justify-between pt-2">
-        <h1 className="text-4xl">Stash</h1>
+        <PageTitle color="text-stash">Stash</PageTitle>
         <Link to="/stash/new" className="flex h-11 items-center rounded-full bg-stash px-5 text-white">+ Yarn</Link>
       </header>
       <div className="flex gap-2 overflow-x-auto">
