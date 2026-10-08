@@ -84,6 +84,24 @@ test('backfill rule: an unlinked part named "Leg 2" links to "Leg" (run through 
   expect(data!.pattern_part_id).toBe(leg.id);
 });
 
+test('backfill prefers an exact name match and leaves unmatched parts unlinked', async () => {
+  const { data: pattern } = await u.client.from('patterns').insert({ name: 'Ambiguous' }).select().single();
+  const { data: pps } = await u.client.from('pattern_parts').insert([
+    { pattern_id: pattern!.id, name: 'Leg', position: 0, count: 2 },
+    { pattern_id: pattern!.id, name: 'Leg 2', position: 1, count: 1 },
+  ]).select().order('position');
+  const { data: project } = await u.client.from('projects').insert({ name: 'Old2', pattern_id: pattern!.id }).select().single();
+  const { data: parts } = await u.client.from('parts').insert([
+    { project_id: project!.id, name: 'Leg 2', position: 0 },
+    { project_id: project!.id, name: 'Tail', position: 1 },
+  ]).select().order('position');
+  expect((await admin.rpc('backfill_part_links')).error).toBeNull();
+  const { data: legRow } = await u.client.from('parts').select('pattern_part_id').eq('id', parts![0].id).single();
+  expect(legRow!.pattern_part_id).toBe(pps![1].id);
+  const { data: tailRow } = await u.client.from('parts').select('pattern_part_id').eq('id', parts![1].id).single();
+  expect(tailRow!.pattern_part_id).toBeNull();
+});
+
 describe('patterns', () => {
   test('photo_path is stored; pdf_updated_at changes only when pdf_path changes', async () => {
     const { data: p } = await u.client.from('patterns')

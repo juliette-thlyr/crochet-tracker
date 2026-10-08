@@ -49,20 +49,22 @@ create index on public.parts (pattern_part_id);
 -- part, project and pattern part all belong to the same user.
 create function public.backfill_part_links() returns void
 language sql security definer set search_path = public as $$
-  update public.parts pt
-  set pattern_part_id = pp.id
-  from public.projects pr, public.pattern_parts pp
-  where pt.pattern_part_id is null
-    and pt.project_id = pr.id
-    and pr.pattern_id is not null
-    and pp.pattern_id = pr.pattern_id
-    and pp.user_id = pt.user_id
-    and (
-      pt.name = pp.name
-      or (pp.count > 1
-          and left(pt.name, length(pp.name) + 1) = pp.name || ' '
-          and substring(pt.name from length(pp.name) + 2) ~ '^[0-9]+$')
-    );
+  with candidates as (
+    select distinct on (pt.id) pt.id as part_id, pp.id as pattern_part_id
+    from public.parts pt
+    join public.projects pr on pr.id = pt.project_id and pr.pattern_id is not null
+    join public.pattern_parts pp on pp.pattern_id = pr.pattern_id and pp.user_id = pt.user_id
+    where pt.pattern_part_id is null
+      and (
+        pt.name = pp.name
+        or (pp.count > 1
+            and left(pt.name, length(pp.name) + 1) = pp.name || ' '
+            and substring(pt.name from length(pp.name) + 2) ~ '^[0-9]+$')
+      )
+    order by pt.id, (pt.name = pp.name) desc, pp.position
+  )
+  update public.parts p set pattern_part_id = c.pattern_part_id
+  from candidates c where p.id = c.part_id;
 $$;
 revoke execute on function public.backfill_part_links() from public, anon, authenticated;
 
