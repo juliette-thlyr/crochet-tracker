@@ -9,10 +9,11 @@ const types = [
 ];
 const p = (id: string, name: string, typeId: string | null, timesMade: number) => ({
   id, name, pattern_type_id: typeId, type: types.find((t) => t.id === typeId) ?? null,
-  designer: null, url: null, hook_size_mm: 3.5, yarn_weight: 'dk', notes: null, pdf_path: null,
+  designer: null, url: null, hook_size_mm: 3.5, yarn_weight: 'dk', notes: null, pdf_path: null, photo_path: null,
   parts: [{ id: `${id}-p`, name: 'Body', count: 2, total_rows: 10, position: 0 }],
   timesMade, avgSeconds: timesMade ? 7200 : null, avgSkeins: timesMade ? 2.4 : null,
 });
+vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
 vi.mock('./api', () => ({
   usePatternTypes: () => ({ data: types }),
   usePatterns: () => ({

@@ -5,12 +5,13 @@ import NewProject from './NewProject';
 
 const startProject = vi.fn();
 const createBlank = vi.fn();
+vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
 vi.mock('../patterns/api', () => ({
   usePatternTypes: () => ({ data: [{ id: 't1', name: 'Amigurumi' }, { id: 't2', name: 'Bag' }] }),
   usePatterns: () => ({
     data: [
-      { id: 'p1', name: 'T-rex', pattern_type_id: 't1', type: { name: 'Amigurumi' }, parts: [{ count: 2 }, { count: 1 }] },
-      { id: 'p2', name: 'Bag A', pattern_type_id: 't2', type: { name: 'Bag' }, parts: [{ count: 3 }] },
+      { id: 'p1', name: 'T-rex', pattern_type_id: 't1', photo_path: null, type: { name: 'Amigurumi' }, parts: [{ count: 2 }, { count: 1 }] },
+      { id: 'p2', name: 'Bag A', pattern_type_id: 't2', photo_path: null, type: { name: 'Bag' }, parts: [{ count: 3 }] },
     ],
     isPending: false, error: null,
   }),

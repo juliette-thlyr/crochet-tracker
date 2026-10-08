@@ -4,6 +4,7 @@ import ErrorBox from '../../components/ErrorBox';
 import { expandPatternParts } from '../../lib/calc';
 import { usePatterns, usePatternTypes, useStartProject } from '../patterns/api';
 import { buildTypeChips } from '../patterns/logic';
+import PatternThumb from '../patterns/PatternThumb';
 import TypeChips from '../patterns/TypeChips';
 import { useCreateBlankProject } from './api';
 
@@ -37,7 +38,7 @@ export default function NewProject() {
         {shown.map((p) => (
           <button key={p.id} type="button" disabled={start.isPending} onClick={() => start.mutate(p.id, open)}
             className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 text-left">
-            <div className="h-24 rounded-xl bg-patterns-soft" />
+            <PatternThumb path={p.photo_path} className="h-24 rounded-xl" />
             <span className="text-base">{p.name}</span>
             <span className="text-xs text-muted">
               {[p.type?.name, `${expandPatternParts(p.parts).length} parts`].filter(Boolean).join(' · ')}

@@ -5,6 +5,7 @@ import { expandPatternParts, formatDuration, formatHook, formatSkeins } from '..
 import { weightLabel } from '../../lib/labels';
 import { usePatterns, usePatternTypes, type PatternListItem } from './api';
 import { buildTypeChips } from './logic';
+import PatternThumb from './PatternThumb';
 import TypeChips from './TypeChips';
 
 export function patternMeta(p: PatternListItem): string {
@@ -42,7 +43,7 @@ export default function PatternList() {
       <TypeChips chips={chips} selected={selected} onSelect={setSelected} tone="patterns" />
       {shown.map((p) => (
         <Link key={p.id} to={`/patterns/${p.id}`} className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-2.5">
-          <div className="h-16 w-16 shrink-0 rounded-xl bg-patterns-soft" />
+          <PatternThumb path={p.photo_path} className="h-16 w-16 shrink-0 rounded-xl" />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="flex items-center justify-between gap-2">
               <span className="text-lg">{p.name}</span>

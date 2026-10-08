@@ -1,7 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/render';
-import { uploadFile } from '../../lib/storage';
 import PatternForm from './PatternForm';
 
 const save = vi.fn();
@@ -11,7 +10,13 @@ vi.mock('./api', () => ({
   usePattern: () => ({ data: undefined, isPending: false, error: null }),
   useSavePattern: () => ({ mutate: save, isPending: false, error: null }),
 }));
-vi.mock('../../lib/storage', () => ({ uploadFile: vi.fn(), MAX_PDF_BYTES: 20 * 1024 * 1024 }));
+const uploadFile = vi.fn();
+vi.mock('../../lib/storage', () => ({
+  uploadFile: (...a: unknown[]) => uploadFile(...a),
+  useSignedUrl: () => undefined,
+  MAX_PDF_BYTES: 20 * 1024 * 1024,
+}));
+vi.mock('../../lib/images', () => ({ resizeImage: async (f: Blob) => f }));
 
 test('saves the pattern with type, recommended hook and parts', async () => {
   renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
@@ -52,7 +57,7 @@ test('tapping the selected type again clears it', async () => {
 
 test('shows an error and does not save when the PDF upload fails', async () => {
   save.mockClear();
-  vi.mocked(uploadFile).mockRejectedValueOnce(new Error('Upload failed'));
+  uploadFile.mockRejectedValueOnce(new Error('Upload failed'));
   const { container } = renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
   await userEvent.type(screen.getByLabelText('Name'), 'T-rex');
   await userEvent.upload(
@@ -62,4 +67,19 @@ test('shows an error and does not save when the PDF upload fails', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Save' }));
   expect(await screen.findByRole('alert')).toHaveTextContent('Upload failed');
   expect(save).not.toHaveBeenCalled();
+});
+
+test('a result photo is uploaded to pattern-photos and saved with the pattern', async () => {
+  uploadFile.mockResolvedValueOnce('u/result.jpg');
+  URL.createObjectURL = vi.fn(() => 'blob:x');
+  URL.revokeObjectURL = vi.fn();
+  renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
+  await userEvent.type(screen.getByLabelText('Name'), 'Bag A');
+  await userEvent.upload(screen.getByLabelText('Take or choose a photo'), new File(['x'], 'bag.jpg', { type: 'image/jpeg' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(uploadFile).toHaveBeenCalledWith('pattern-photos', expect.any(File), 'jpg');
+  expect(save).toHaveBeenCalledWith(
+    expect.objectContaining({ pattern: expect.objectContaining({ name: 'Bag A', photo_path: 'u/result.jpg' }) }),
+    expect.anything(),
+  );
 });

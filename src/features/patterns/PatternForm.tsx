@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ErrorBox from '../../components/ErrorBox';
 import HookSelect from '../../components/HookSelect';
+import PhotoField from '../../components/PhotoField';
+import { resizeImage } from '../../lib/images';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { MAX_PDF_BYTES, uploadFile } from '../../lib/storage';
 import { useCreatePatternType, usePattern, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
@@ -41,6 +43,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   const [p, setP] = useState(initial);
   const [parts, setParts] = useState(initialParts);
   const [pdf, setPdf] = useState<File | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<unknown>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [newType, setNewType] = useState<string | null>(null);
@@ -76,7 +79,16 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         return;
       }
     }
-    save.mutate({ pattern: { ...p, pdf_path }, parts }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
+    let photo_path = p.photo_path;
+    if (photo) {
+      try {
+        photo_path = await uploadFile('pattern-photos', await resizeImage(photo), 'jpg');
+      } catch (err) {
+        setUploadError(err);
+        return;
+      }
+    }
+    save.mutate({ pattern: { ...p, pdf_path, photo_path }, parts }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
   }
 
   return (
@@ -101,6 +113,9 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
       {pdfError && <p role="alert" className="text-projects-dark">{pdfError}</p>}
 
       <label className={label}>Name<input required className={input} value={p.name} onChange={(e) => set('name', e.target.value)} /></label>
+
+      <PhotoField label="Result photo" bucket="pattern-photos" path={p.photo_path} file={photo}
+        onFile={setPhoto} onRemove={() => set('photo_path', null)} />
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm text-muted">Type</span>
