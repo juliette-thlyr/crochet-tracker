@@ -6,6 +6,7 @@ import ProjectPage from './ProjectPage';
 const updatePart = vi.fn();
 const updateProject = vi.fn();
 const addPart = vi.fn();
+const removePlan = vi.fn();
 const part = (id: string, name: string, position: number, extra = {}) => ({
   id, name, position, project_id: 'pr1', done: false, current_row: null, total_rows: null, resume_note: null,
   notes: null, time_sessions: [], part_yarns: [], ...extra,
@@ -19,7 +20,7 @@ vi.mock('./api', () => ({
         part('a', 'Head', 0, { done: true, current_row: 24, total_rows: 24 }),
         part('b', 'Leg 1', 2, { current_row: 12, total_rows: 18, resume_note: 'after 2nd increase' }),
       ],
-      project_yarns: [], project_photos: [],
+      project_yarns: [{ id: 'pl1', skeins_planned: 2, yarn: { id: 'y1', name: 'Fern green' } }], project_photos: [],
     },
     isPending: false, error: null, refetch: vi.fn(),
   }),
@@ -29,6 +30,7 @@ vi.mock('./api', () => ({
   useDeletePart: () => ({ mutate: vi.fn() }),
   useMovePart: () => ({ mutate: vi.fn() }),
   usePlanYarn: () => ({ mutate: vi.fn() }),
+  useRemovePlan: () => ({ mutate: removePlan }),
   useAddProjectPhoto: () => ({ mutate: vi.fn(), isPending: false }),
   useDeleteProject: () => ({ mutate: vi.fn() }),
 }));
@@ -75,4 +77,12 @@ test('a new part after a position gap gets the next free position', async () => 
   await userEvent.type(screen.getByLabelText('New part name'), 'Tail');
   await userEvent.click(screen.getByRole('button', { name: 'Add' }));
   expect(addPart).toHaveBeenCalledWith({ projectId: 'pr1', name: 'Tail', position: 3 });
+});
+
+test('a planned yarn can be removed after confirmation', async () => {
+  renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
+  await userEvent.click(screen.getByRole('button', { name: 'Remove plan for Fern green' }));
+  expect(removePlan).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+  expect(removePlan).toHaveBeenCalledWith({ projectId: 'pr1', yarnId: 'y1' });
 });

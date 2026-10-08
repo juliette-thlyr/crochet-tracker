@@ -178,3 +178,14 @@ export function useAddProjectPhoto() {
     onSuccess: invalidate,
   });
 }
+
+export function useRemovePlan() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async ({ projectId, yarnId }: { projectId: string; yarnId: string }) => {
+      const { error } = await supabase.from('project_yarns').delete().eq('project_id', projectId).eq('yarn_id', yarnId);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}

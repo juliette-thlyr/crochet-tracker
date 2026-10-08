@@ -9,7 +9,7 @@ import { useYarns } from '../stash/api';
 import StartTimerButton from '../timer/StartTimerButton';
 import {
   useAddPart, useAddProjectPhoto, useDeletePart, useDeleteProject, useMovePart, usePlanYarn, useProject,
-  useUpdatePart, useUpdateProject, type ProjectPart,
+  useRemovePlan, useUpdatePart, useUpdateProject, type ProjectPart,
 } from './api';
 import { projectYarnLines, STATUS_ORDER } from './logic';
 import NumberField from '../../components/NumberField';
@@ -26,6 +26,7 @@ export default function ProjectPage() {
   const deletePart = useDeletePart();
   const movePart = useMovePart();
   const planYarn = usePlanYarn();
+  const removePlan = useRemovePlan();
   const addPhoto = useAddProjectPhoto();
   const deleteProject = useDeleteProject();
   const yarns = useYarns();
@@ -33,7 +34,7 @@ export default function ProjectPage() {
   const [renaming, setRenaming] = useState(false);
   const [newPart, setNewPart] = useState<string | null>(null);
   const [plan, setPlan] = useState<{ yarnId: string; skeins: number } | null>(null);
-  const [confirm, setConfirm] = useState<null | { kind: 'project' } | { kind: 'part'; part: ProjectPart }>(null);
+  const [confirm, setConfirm] = useState<null | { kind: 'project' } | { kind: 'part'; part: ProjectPart } | { kind: 'plan'; yarnId: string; name: string }>(null);
   const cover = useSignedUrl('project-photos', p?.project_photos[0]?.path ?? null);
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
@@ -41,7 +42,7 @@ export default function ProjectPage() {
 
   const mutationError =
     updateProject.error ?? updatePart.error ?? addPart.error ?? deletePart.error ??
-    movePart.error ?? planYarn.error ?? addPhoto.error ?? deleteProject.error;
+    movePart.error ?? planYarn.error ?? removePlan.error ?? addPhoto.error ?? deleteProject.error;
   const now = new Date();
   const total = p.parts.reduce((s, part) => s + sumSeconds(part.time_sessions, now), 0);
   const lines = projectYarnLines(p.parts, p.project_yarns);
@@ -155,9 +156,16 @@ export default function ProjectPage() {
       </div>
       <div className="grid grid-cols-2 gap-2">
         {lines.map((l) => (
-          <Link key={l.yarnId} to={`/stash/${l.yarnId}`} className="rounded-xl border border-line bg-surface p-2.5 text-sm">
-            {l.name}<br />{l.used} / {l.planned ?? '—'}
-          </Link>
+          <div key={l.yarnId} className="flex items-start gap-1 rounded-xl border border-line bg-surface p-2.5 text-sm">
+            <Link to={`/stash/${l.yarnId}`} className="min-h-11 flex-1">
+              {l.name}<br />{l.used} / {l.planned ?? '—'}
+            </Link>
+            {l.planned !== null && (
+              <button type="button" aria-label={`Remove plan for ${l.name}`}
+                onClick={() => setConfirm({ kind: 'plan', yarnId: l.yarnId, name: l.name })}
+                className="h-11 w-11 shrink-0 text-muted">×</button>
+            )}
+          </div>
         ))}
       </div>
       {plan && (
@@ -201,12 +209,15 @@ export default function ProjectPage() {
       </button>
       <ConfirmDialog
         open={confirm !== null}
-        title={confirm?.kind === 'part' ? `Delete ${confirm.part.name}?` : `Delete ${p.name}?`}
-        message={confirm?.kind === 'part' ? 'Its time and yarn records are deleted too.' : 'All its parts, time and photos are deleted.'}
-        confirmLabel="Delete"
+        title={confirm?.kind === 'plan' ? `Remove the plan for ${confirm.name}?`
+          : confirm?.kind === 'part' ? `Delete ${confirm.part.name}?` : `Delete ${p.name}?`}
+        message={confirm?.kind === 'plan' ? 'Its reserved skeins go back to your stash. Yarn already used on parts stays.'
+          : confirm?.kind === 'part' ? 'Its time and yarn records are deleted too.' : 'All its parts, time and photos are deleted.'}
+        confirmLabel={confirm?.kind === 'plan' ? 'Remove' : 'Delete'}
         onCancel={() => setConfirm(null)}
         onConfirm={() => {
-          if (confirm?.kind === 'part') deletePart.mutate(confirm.part.id);
+          if (confirm?.kind === 'plan') removePlan.mutate({ projectId: id, yarnId: confirm.yarnId });
+          else if (confirm?.kind === 'part') deletePart.mutate(confirm.part.id);
           else deleteProject.mutate(id, { onSuccess: () => navigate('/') });
           setConfirm(null);
         }}
