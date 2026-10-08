@@ -38,6 +38,7 @@ export default function Login() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-6">
+      <img src="/icons/icon.svg" alt="" className="h-28 w-28 self-center" />
       <h1 className="text-5xl text-projects">Crochet Tracker</h1>
       {sent ? (
         <form onSubmit={verify} className="flex flex-col gap-4">

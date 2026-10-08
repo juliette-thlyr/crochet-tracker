@@ -37,6 +37,14 @@ test('sends a magic link and asks for the code', async () => {
   expect(code).toHaveAttribute('autocomplete', 'one-time-code');
 });
 
+test('shows the logo above the title', () => {
+  const { container } = render(<Login />);
+  const logo = container.querySelector('img[src="/icons/icon.svg"]');
+  expect(logo).not.toBeNull();
+  expect(logo!.compareDocumentPosition(screen.getByRole('heading', { name: 'Crochet Tracker' })))
+    .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+});
+
 test('shows the error when sending fails', async () => {
   signInWithOtp.mockResolvedValue({ error: { message: 'Rate limit exceeded' } });
   render(<Login />);
