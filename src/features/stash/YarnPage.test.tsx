@@ -4,6 +4,7 @@ import { renderWithProviders } from '../../test/render';
 import YarnPage from './YarnPage';
 
 const remove = vi.fn();
+const addSkeins = vi.fn();
 vi.mock('./api', () => ({
   useYarn: () => ({
     data: {
@@ -17,6 +18,7 @@ vi.mock('./api', () => ({
     data: [{ projectId: 'p1', name: 'T-rex for Léo', status: 'in_progress', planned: 2, used: 1.1 }],
   }),
   useDeleteYarn: () => ({ mutate: remove, error: new Error('This yarn is used or planned in a project. Set "owned" to 0 instead.') }),
+  useAddSkeins: () => ({ mutate: addSkeins, isPending: false, error: null }),
 }));
 vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
 
@@ -34,4 +36,15 @@ test('delete asks for confirmation and shows why it is blocked', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Delete' }));
   expect(remove).toHaveBeenCalledWith('y1', expect.anything());
   expect(screen.getByRole('alert')).toHaveTextContent('Set "owned" to 0 instead');
+});
+
+test('+ Add skeins adds the typed amount without opening the form', async () => {
+  renderWithProviders(<YarnPage />, { route: '/stash/y1', path: '/stash/:id' });
+  await userEvent.click(screen.getByRole('button', { name: '+ Add skeins' }));
+  const amount = screen.getByLabelText('How many skeins?');
+  expect(amount).toHaveValue('1');
+  await userEvent.clear(amount);
+  await userEvent.type(amount, '2');
+  await userEvent.click(screen.getByRole('button', { name: 'Add' }));
+  expect(addSkeins).toHaveBeenCalledWith({ yarnId: 'y1', amount: 2 }, expect.anything());
 });

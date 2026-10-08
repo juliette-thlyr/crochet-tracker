@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import ErrorBox from '../../components/ErrorBox';
+import NumberField from '../../components/NumberField';
 import { formatEuros } from '../../lib/calc';
 import { STATUS_LABELS, weightLabel } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
-import { useDeleteYarn, useYarn, useYarnUsage } from './api';
+import { useAddSkeins, useDeleteYarn, useYarn, useYarnUsage } from './api';
 
 export default function YarnPage() {
   const { id } = useParams() as { id: string };
@@ -13,6 +14,8 @@ export default function YarnPage() {
   const { data: yarn, isPending, error, refetch } = useYarn(id);
   const usage = useYarnUsage(id);
   const del = useDeleteYarn();
+  const addSkeins = useAddSkeins();
+  const [adding, setAdding] = useState<number | null | undefined>(undefined);
   const [confirming, setConfirming] = useState(false);
   const photo = useSignedUrl('yarn-photos', yarn?.photo_path ?? null);
 
@@ -48,6 +51,22 @@ export default function YarnPage() {
             </div>
           ))}
         </div>
+        {adding === undefined ? (
+          <button type="button" onClick={() => setAdding(1)}
+            className="min-h-11 self-start rounded-full bg-stash px-5 text-white">+ Add skeins</button>
+        ) : (
+          <div className="flex items-end gap-2 rounded-2xl border border-line bg-surface p-3">
+            <label className="flex w-32 flex-col gap-1 text-sm text-muted">How many skeins?
+              <NumberField value={adding} min={0} step={0.25} onChange={setAdding}
+                className="h-11 rounded-xl border border-line px-2 text-ink" />
+            </label>
+            <button type="button" onClick={() => setAdding(undefined)} className="h-11 px-3 text-muted">Cancel</button>
+            <button type="button" disabled={!adding || adding <= 0 || addSkeins.isPending}
+              onClick={() => addSkeins.mutate({ yarnId: id, amount: adding! }, { onSuccess: () => setAdding(undefined) })}
+              className="h-11 rounded-full bg-stash px-4 text-white">Add</button>
+          </div>
+        )}
+        {addSkeins.error && <ErrorBox error={addSkeins.error} />}
         {yarn.free < 0 && <p className="text-sm text-projects-dark">More used than owned: update the owned count.</p>}
 
         <h2 className="text-sm uppercase tracking-wide text-muted">Used in</h2>

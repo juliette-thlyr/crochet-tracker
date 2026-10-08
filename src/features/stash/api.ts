@@ -95,3 +95,14 @@ export function useDeleteYarn() {
     onSuccess: invalidate,
   });
 }
+
+export function useAddSkeins() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async ({ yarnId, amount }: { yarnId: string; amount: number }) => {
+      const { error } = await supabase.rpc('add_skeins', { p_yarn_id: yarnId, p_amount: amount });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
