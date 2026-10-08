@@ -6,7 +6,8 @@ import PhotoField from '../../components/PhotoField';
 import { resizeImage } from '../../lib/images';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { MAX_PDF_BYTES, uploadFile } from '../../lib/storage';
-import { useCreatePatternType, usePattern, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { useCreatePatternType, usePattern, usePatternInstructionCounts, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
 import { nextTypePosition, type PartDraft } from './logic';
 import NumberField from '../../components/NumberField';
 
@@ -31,7 +32,7 @@ export default function PatternForm() {
   const existing = usePattern(id);
   if (id && existing.error) return <ErrorBox error={existing.error} />;
   if (id && !existing.data) return <p className="p-4 text-muted">Loading…</p>;
-  const parts = existing.data?.parts.map((p) => ({ name: p.name, count: p.count, total_rows: p.total_rows }));
+  const parts = existing.data?.parts.map((p) => ({ id: p.id, name: p.name, count: p.count, total_rows: p.total_rows }));
   return <PatternFormBody initial={toInput(existing.data)} initialParts={parts ?? [emptyPart()]} />;
 }
 
@@ -40,6 +41,8 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   const types = usePatternTypes();
   const createType = useCreatePatternType();
   const save = useSavePattern();
+  const counts = usePatternInstructionCounts(initial.id);
+  const [removing, setRemoving] = useState<number | null>(null);
   const [p, setP] = useState(initial);
   const [parts, setParts] = useState(initialParts);
   const [pdf, setPdf] = useState<File | null>(null);
@@ -173,13 +176,26 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
           <NumberField aria-label="Rows" value={part.total_rows} min={1}
             onChange={(v) => setPart(i, { total_rows: v })}
             className="h-11 w-14 rounded-xl border border-line bg-surface text-center" />
-          <button type="button" aria-label="Remove part" onClick={() => setParts(parts.filter((_, j) => j !== i))}
-            className="h-11 w-11 text-muted">×</button>
+          <button type="button" aria-label="Remove part" className="h-11 w-11 text-muted"
+            onClick={() => {
+              const n = part.id ? counts.data?.get(part.id) ?? 0 : 0;
+              if (n > 0) setRemoving(i);
+              else setParts(parts.filter((_, j) => j !== i));
+            }}>×</button>
         </div>
       ))}
       <button type="button" onClick={() => setParts([...parts, emptyPart()])} className="h-11 self-start text-patterns">+ Add part</button>
 
       <label className={label}>Notes<textarea rows={3} className="rounded-xl border border-line bg-surface p-3" value={p.notes ?? ''} onChange={(e) => set('notes', text(e.target.value))} /></label>
+
+      <ConfirmDialog
+        open={removing !== null}
+        title={`Remove ${removing !== null ? parts[removing].name : ''}?`}
+        message="Its instructions are deleted too when you save."
+        confirmLabel="Remove"
+        onCancel={() => setRemoving(null)}
+        onConfirm={() => { setParts(parts.filter((_, j) => j !== removing)); setRemoving(null); }}
+      />
     </form>
   );
 }

@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase, type Tables } from '../../lib/supabase';
-import { cleanPartDrafts, type PartDraft } from './logic';
+import { planPartChanges, type PartDraft } from './logic';
 
 export type Pattern = Tables<'patterns'>;
 export type PatternType = Tables<'pattern_types'>;
@@ -130,23 +130,43 @@ export function useSavePattern() {
         : await supabase.from('patterns').insert(fields).select('id').single();
       if (saved.error) throw saved.error;
       const patternId = saved.data.id;
-      // Template parts are copied into projects at start, so replacing them never touches existing projects.
-      // Insert the new parts before removing the old ones so a failed insert cannot lose the template.
+      // Kept parts are updated in place so their instructions survive; projects copied from them are unaffected.
       const old = await supabase.from('pattern_parts').select('id').eq('pattern_id', patternId);
       if (old.error) throw old.error;
-      const rows = cleanPartDrafts(parts).map((p) => ({ ...p, pattern_id: patternId }));
-      if (rows.length > 0) {
-        const ins = await supabase.from('pattern_parts').insert(rows);
+      const plan = planPartChanges(old.data.map((r) => r.id), parts);
+      for (const { id: partId, ...fields } of plan.updates) {
+        const up = await supabase.from('pattern_parts').update(fields).eq('id', partId);
+        if (up.error) throw up.error;
+      }
+      if (plan.inserts.length > 0) {
+        const ins = await supabase.from('pattern_parts').insert(plan.inserts.map((p) => ({ ...p, pattern_id: patternId })));
         if (ins.error) throw ins.error;
       }
-      const oldIds = old.data.map((r) => r.id);
-      if (oldIds.length > 0) {
-        const del = await supabase.from('pattern_parts').delete().in('id', oldIds);
+      if (plan.deleteIds.length > 0) {
+        const del = await supabase.from('pattern_parts').delete().in('id', plan.deleteIds);
         if (del.error) throw del.error;
       }
       return patternId;
     },
     onSuccess: invalidate,
+  });
+}
+
+/** Number of instruction pictures per pattern part of one pattern. */
+export function usePatternInstructionCounts(patternId: string | undefined) {
+  return useQuery({
+    queryKey: ['instructions', 'counts', patternId],
+    enabled: patternId !== undefined,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('part_instructions')
+        .select('pattern_part_id, pattern_parts!inner(pattern_id)')
+        .eq('pattern_parts.pattern_id', patternId!);
+      if (error) throw error;
+      const counts = new Map<string, number>();
+      for (const r of data) counts.set(r.pattern_part_id, (counts.get(r.pattern_part_id) ?? 0) + 1);
+      return counts;
+    },
   });
 }
 

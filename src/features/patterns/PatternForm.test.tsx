@@ -4,13 +4,16 @@ import { renderWithProviders } from '../../test/render';
 import PatternForm from './PatternForm';
 
 const save = vi.fn();
+const fixture = vi.hoisted(() => ({ pattern: undefined as unknown, counts: new Map<string, number>() }));
 vi.mock('./api', () => ({
   usePatternTypes: () => ({ data: [{ id: 't1', name: 'Amigurumi', position: 0 }, { id: 't2', name: 'Clothes', position: 1 }] }),
   useCreatePatternType: () => ({ mutate: vi.fn() }),
-  usePattern: () => ({ data: undefined, isPending: false, error: null }),
+  usePattern: () => ({ data: fixture.pattern, isPending: false, error: null }),
+  usePatternInstructionCounts: () => ({ data: fixture.counts }),
   useSavePattern: () => ({ mutate: save, isPending: false, error: null }),
 }));
 const uploadFile = vi.fn();
+beforeEach(() => { fixture.pattern = undefined; fixture.counts = new Map(); save.mockClear(); });
 vi.mock('../../lib/storage', () => ({
   uploadFile: (...a: unknown[]) => uploadFile(...a),
   useSignedUrl: () => undefined,
@@ -80,6 +83,33 @@ test('a result photo is uploaded to pattern-photos and saved with the pattern', 
   expect(uploadFile).toHaveBeenCalledWith('pattern-photos', expect.any(File), 'jpg');
   expect(save).toHaveBeenCalledWith(
     expect.objectContaining({ pattern: expect.objectContaining({ name: 'Bag A', photo_path: 'u/result.jpg' }) }),
+    expect.anything(),
+  );
+});
+
+const leg = () => ({
+  id: 'p1', name: 'T-rex', pattern_type_id: null, designer: null, url: null, hook_size_mm: null,
+  yarn_weight: null, notes: null, pdf_path: null, photo_path: null, pdf_updated_at: null,
+  parts: [{ id: 'pp1', name: 'Leg', count: 2, total_rows: 18, position: 0 }],
+});
+
+test('removing a part that has instructions asks first', async () => {
+  fixture.pattern = leg();
+  fixture.counts = new Map([['pp1', 2]]);
+  renderWithProviders(<PatternForm />, { route: '/patterns/p1/edit', path: '/patterns/:id/edit' });
+  await userEvent.click(screen.getByRole('button', { name: 'Remove part' }));
+  expect(screen.getByRole('dialog', { name: 'Remove Leg?' })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({ parts: [] }), expect.anything());
+});
+
+test('kept parts are sent with their id', async () => {
+  fixture.pattern = leg();
+  renderWithProviders(<PatternForm />, { route: '/patterns/p1/edit', path: '/patterns/:id/edit' });
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(save).toHaveBeenCalledWith(
+    expect.objectContaining({ parts: [{ id: 'pp1', name: 'Leg', count: 2, total_rows: 18 }] }),
     expect.anything(),
   );
 });
