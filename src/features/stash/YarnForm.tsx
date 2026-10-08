@@ -5,6 +5,7 @@ import { resizeImage } from '../../lib/images';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { uploadFile } from '../../lib/storage';
 import { toYarnInput, useSaveYarn, useYarn, type YarnInput } from './api';
+import NumberField from '../../components/NumberField';
 
 const empty: YarnInput = {
   brand: null, name: '', color: null, yarn_weight: null, fiber: null, skeins_owned: 1, photo_path: null,
@@ -68,15 +69,15 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
         <label className={`${label} flex-1`}>Fiber<input className={input} value={y.fiber ?? ''} onChange={(e) => set('fiber', text(e.target.value))} /></label>
       </div>
       <label className={label}>Skeins owned
-        <input required type="number" min={0} step={0.25} className={input} value={y.skeins_owned}
-          onChange={(e) => set('skeins_owned', Number(e.target.value))} />
+        <NumberField required value={y.skeins_owned} min={0} step={0.25} emptyValue={0}
+          onChange={(v) => set('skeins_owned', v ?? 0)} className={input} />
       </label>
       <label className={label}>Photo<input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></label>
       <label className={label}>Shop<input className={input} value={y.bought_at ?? ''} onChange={(e) => set('bought_at', text(e.target.value))} /></label>
       <div className="flex gap-2">
         <label className={`${label} flex-1`}>Price per skein (€)
-          <input type="number" min={0} step={0.01} className={input} value={y.price_per_skein ?? ''}
-            onChange={(e) => set('price_per_skein', e.target.value === '' ? null : Number(e.target.value))} />
+          <NumberField value={y.price_per_skein} min={0} step={0.01}
+            onChange={(v) => set('price_per_skein', v)} className={input} />
         </label>
         <label className={`${label} flex-1`}>Bought on
           <input type="date" className={input} value={y.bought_on ?? ''} onChange={(e) => set('bought_on', e.target.value || null)} />

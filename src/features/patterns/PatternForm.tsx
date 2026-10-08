@@ -6,6 +6,7 @@ import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { MAX_PDF_BYTES, uploadFile } from '../../lib/storage';
 import { useCreatePatternType, usePattern, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
 import { nextTypePosition, type PartDraft } from './logic';
+import NumberField from '../../components/NumberField';
 
 const input = 'h-12 rounded-xl border border-line bg-surface px-3';
 const label = 'flex flex-col gap-1.5 text-sm text-muted';
@@ -151,11 +152,11 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         <div key={i} className="flex items-center gap-1.5">
           <input aria-label="Part name" value={part.name} onChange={(e) => setPart(i, { name: e.target.value })}
             className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-2.5" />
-          <input aria-label="How many" type="number" min={1} value={part.count}
-            onChange={(e) => setPart(i, { count: Number(e.target.value) })}
+          <NumberField aria-label="How many" value={part.count} min={1} emptyValue={1}
+            onChange={(v) => setPart(i, { count: v ?? 1 })}
             className="h-11 w-12 rounded-xl border border-line bg-surface text-center" />
-          <input aria-label="Rows" type="number" min={1} value={part.total_rows ?? ''}
-            onChange={(e) => setPart(i, { total_rows: e.target.value === '' ? null : Number(e.target.value) })}
+          <NumberField aria-label="Rows" value={part.total_rows} min={1}
+            onChange={(v) => setPart(i, { total_rows: v })}
             className="h-11 w-14 rounded-xl border border-line bg-surface text-center" />
           <button type="button" aria-label="Remove part" onClick={() => setParts(parts.filter((_, j) => j !== i))}
             className="h-11 w-11 text-muted">×</button>

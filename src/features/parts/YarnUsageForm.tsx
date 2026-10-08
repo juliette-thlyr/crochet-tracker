@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import NumberField from '../../components/NumberField';
 
 type Props = {
   yarns: { id: string; name: string }[];
@@ -8,11 +9,11 @@ type Props = {
 
 export default function YarnUsageForm({ yarns, onSave, onCancel }: Props) {
   const [yarnId, setYarnId] = useState('');
-  const [skeins, setSkeins] = useState('0.25');
+  const [skeins, setSkeins] = useState<number | null>(0.25);
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    if (yarnId && Number(skeins) >= 0) onSave({ yarnId, skeins: Number(skeins) });
+    if (yarnId && skeins !== null && skeins > 0) onSave({ yarnId, skeins });
   }
 
   return (
@@ -25,8 +26,8 @@ export default function YarnUsageForm({ yarns, onSave, onCancel }: Props) {
         </select>
       </label>
       <label className="flex w-24 flex-col gap-1 text-sm text-muted">Skeins used
-        <input type="number" min={0} step={0.05} value={skeins} onChange={(e) => setSkeins(e.target.value)}
-          className="h-11 rounded-xl border border-line px-2 text-ink" />
+        <NumberField value={skeins} min={0} step={0.05}
+          onChange={setSkeins} className="h-11 rounded-xl border border-line px-2 text-ink" />
       </label>
       <button type="button" onClick={onCancel} className="h-11 px-2 text-muted">Cancel</button>
       <button type="submit" className="h-11 rounded-full bg-projects px-4 text-white">Save yarn</button>

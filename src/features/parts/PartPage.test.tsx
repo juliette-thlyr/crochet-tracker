@@ -80,9 +80,9 @@ test('editing another session shows its own duration', async () => {
   renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
   const edits = screen.getAllByRole('button', { name: 'Edit time' });
   await userEvent.click(edits[0]);
-  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(25);
+  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue('25');
   await userEvent.click(edits[1]);
-  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue(10);
+  expect(screen.getByLabelText('Duration (minutes)')).toHaveValue('10');
 });
 
 test('deleting a time session asks for confirmation first', async () => {

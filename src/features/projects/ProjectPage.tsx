@@ -12,6 +12,7 @@ import {
   useUpdatePart, useUpdateProject, type ProjectPart,
 } from './api';
 import { projectYarnLines, STATUS_ORDER } from './logic';
+import NumberField from '../../components/NumberField';
 
 const h2 = 'text-sm uppercase tracking-wide text-muted';
 
@@ -169,8 +170,8 @@ export default function ProjectPage() {
             </select>
           </label>
           <label className="flex w-24 flex-col gap-1 text-sm text-muted">Skeins
-            <input type="number" min={0} step={0.25} value={plan.skeins}
-              onChange={(e) => setPlan({ ...plan, skeins: Number(e.target.value) })}
+            <NumberField value={plan.skeins} min={0} step={0.25} emptyValue={0}
+              onChange={(v) => setPlan({ ...plan, skeins: v ?? 0 })}
               className="h-11 rounded-xl border border-line px-2 text-ink" />
           </label>
           <button type="button" disabled={!plan.yarnId} className="h-11 rounded-full bg-projects px-4 text-white"

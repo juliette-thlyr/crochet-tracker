@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import NumberField from '../../components/NumberField';
 
 type Props = {
   initial?: { started_at: string; minutes: number };
@@ -14,12 +15,12 @@ function toLocalInput(d: Date): string {
 
 export default function SessionForm({ initial, onSave, onCancel }: Props) {
   const [start, setStart] = useState(toLocalInput(initial ? new Date(initial.started_at) : new Date(Date.now() - 30 * 60_000)));
-  const [minutes, setMinutes] = useState(String(initial?.minutes ?? 30));
+  const [minutes, setMinutes] = useState<number | null>(initial?.minutes ?? 30);
   const [error, setError] = useState<string | null>(null);
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    const m = Number(minutes);
+    const m = minutes ?? 0;
     if (!Number.isFinite(m) || m < 1) {
       setError('The duration must be at least 1 minute.');
       return;
@@ -39,7 +40,7 @@ export default function SessionForm({ initial, onSave, onCancel }: Props) {
           className="h-11 rounded-xl border border-line px-2 text-ink" />
       </label>
       <label className="flex flex-col gap-1 text-sm text-muted">Duration (minutes)
-        <input type="number" min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)}
+        <NumberField value={minutes} min={0} onChange={setMinutes}
           className="h-11 rounded-xl border border-line px-2 text-ink" />
       </label>
       {error && <p role="alert" className="text-projects-dark">{error}</p>}
