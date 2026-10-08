@@ -27,6 +27,18 @@ export default defineConfig({
     inlineAppleTouchIcon(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Behind Netlify visitor access the service worker may fail to update itself,
+      // so pages always come from the network first and the saved copy is only a fallback.
+      workbox: {
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pages', networkTimeoutSeconds: 4 },
+          },
+        ],
+      },
       manifest: {
         name: 'Crochet Tracker',
         short_name: 'Crochet',
