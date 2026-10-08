@@ -15,7 +15,8 @@
     "db:reset": "supabase db reset",
     "db:push": "node scripts/db.mjs push",
     "db:types": "node scripts/db.mjs types",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "icons": "node scripts/make-icon.mjs && pwa-assets-generator"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -34,6 +35,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vite-pwa/assets-generator": "^1.0.4",
     "@vitejs/plugin-react": "^4.3.0",
     "dotenv": "^16.4.0",
     "jsdom": "^25.0.0",
