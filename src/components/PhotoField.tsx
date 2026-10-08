@@ -34,7 +34,7 @@ export default function PhotoField({ label, bucket, path, file, onFile, onRemove
           <label className="flex min-h-11 cursor-pointer items-center rounded-full border-[1.5px] border-dashed border-muted bg-surface px-4 text-sm">
             Take or choose a photo
             <input type="file" accept="image/*" className="sr-only" aria-label="Take or choose a photo"
-              onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+              onChange={(e) => { onFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />
           </label>
           {(file || path) && (
             <button type="button" onClick={() => { onFile(null); onRemove(); }} className="min-h-11 self-start text-sm text-muted">

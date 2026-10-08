@@ -34,18 +34,22 @@ export function useAddPdfPages() {
       const signed = await supabase.storage.from('pattern-pdfs').createSignedUrl(v.pdfPath, 600);
       if (signed.error) throw signed.error;
       const pdf = await openPdf(signed.data.signedUrl);
-      const tooFar = v.pages.find((n) => n > pdf.numPages);
-      if (tooFar !== undefined) throw new Error(`Page ${tooFar} doesn't exist — the PDF has ${pdf.numPages} pages.`);
-      for (const [i, n] of v.pages.entries()) {
-        try {
-          const path = await uploadFile('pattern-instructions', await pdf.render(n), 'jpg');
-          const ins = await supabase.from('part_instructions').insert({
-            pattern_part_id: v.patternPartId, position: v.startPosition + i, kind: 'pdf_page', pdf_page: n, image_path: path,
-          });
-          if (ins.error) throw ins.error;
-        } catch (err) {
-          throw new Error(`Page ${n} couldn't be added: ${messageOf(err)}`);
+      try {
+        const tooFar = v.pages.find((n) => n > pdf.numPages);
+        if (tooFar !== undefined) throw new Error(`Page ${tooFar} doesn't exist — the PDF has ${pdf.numPages} pages.`);
+        for (const [i, n] of v.pages.entries()) {
+          try {
+            const path = await uploadFile('pattern-instructions', await pdf.render(n), 'jpg');
+            const ins = await supabase.from('part_instructions').insert({
+              pattern_part_id: v.patternPartId, position: v.startPosition + i, kind: 'pdf_page', pdf_page: n, image_path: path,
+            });
+            if (ins.error) throw ins.error;
+          } catch (err) {
+            throw new Error(`Page ${n} couldn't be added: ${messageOf(err)}`);
+          }
         }
+      } finally {
+        await pdf.destroy().catch(() => undefined);
       }
     },
     onSettled: invalidate,

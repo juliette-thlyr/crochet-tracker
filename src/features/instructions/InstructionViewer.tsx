@@ -4,7 +4,8 @@ type Props = { items: { path: string; label: string }[]; index: number; onIndex:
 
 export default function InstructionViewer({ items, index, onIndex, onClose }: Props) {
   const item = items[index];
-  const url = useSignedUrl('pattern-instructions', item.path);
+  const url = useSignedUrl('pattern-instructions', item?.path ?? null);
+  if (!item) return null;
   return (
     <div role="dialog" aria-modal="true" aria-label="Instructions" className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
       <div className="flex items-center justify-between p-2">

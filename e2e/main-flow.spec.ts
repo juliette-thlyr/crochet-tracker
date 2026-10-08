@@ -105,6 +105,7 @@ test('pattern → project → timer → rows → yarn → stash', async ({ page 
   await page.getByRole('combobox', { name: 'Yarn' }).selectOption({ label: 'Fern green' });
   await page.getByLabel('Skeins used').fill('0.5');
   await page.getByRole('button', { name: 'Save yarn' }).click();
+  await expect(page.getByText('0.5 sk').first()).toBeVisible();
   await page.goto('/stash');
   await expect(page.getByRole('link', { name: /Fern green/ })).toContainText('2.5 sk free / 3 sk');
 
@@ -113,6 +114,7 @@ test('pattern → project → timer → rows → yarn → stash', async ({ page 
   await page.getByRole('button', { name: '+ Add skeins' }).click();
   await page.getByLabel('How many skeins?').fill('2');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByRole('button', { name: '+ Add skeins' })).toBeVisible();
   await page.goto('/stash');
   await expect(page.getByRole('link', { name: /Fern green/ })).toContainText('4.5 sk free / 5 sk');
 });

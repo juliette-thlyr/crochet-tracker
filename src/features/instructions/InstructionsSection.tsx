@@ -21,7 +21,7 @@ export default function InstructionsSection({ patternPartId }: { patternPartId: 
           <InstructionThumb path={it.path} alt={`Instructions ${it.label}`} className="w-full" />
         </button>
       ))}
-      {open !== null && <InstructionViewer items={items} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
+      {open !== null && open < items.length && <InstructionViewer items={items} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
     </section>
   );
 }

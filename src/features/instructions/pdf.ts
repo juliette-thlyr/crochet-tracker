@@ -1,8 +1,8 @@
 /** Opens a PDF and renders pages to JPEG blobs (white background, quality 0.8). */
 export async function openPdf(url: string, width = 1600) {
   const [pdfjs, { default: workerUrl }] = await Promise.all([
-    import('pdfjs-dist'),
-    import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+    import('pdfjs-dist/legacy/build/pdf.mjs'),
+    import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'),
   ]);
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
   const doc = await pdfjs.getDocument({ url }).promise;
@@ -19,9 +19,16 @@ export async function openPdf(url: string, width = 1600) {
       context.fillStyle = '#FFFFFF';
       context.fillRect(0, 0, canvas.width, canvas.height);
       await page.render({ canvas, canvasContext: context, viewport }).promise;
-      return new Promise((resolve, reject) =>
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not render the page'))), 'image/jpeg', 0.8),
-      );
+      try {
+        return await new Promise<Blob>((resolve, reject) =>
+          canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not render the page'))), 'image/jpeg', 0.8),
+        );
+      } finally {
+        canvas.width = 0;
+        canvas.height = 0;
+        page.cleanup();
+      }
     },
+    destroy: (): Promise<void> => doc.destroy(),
   };
 }
