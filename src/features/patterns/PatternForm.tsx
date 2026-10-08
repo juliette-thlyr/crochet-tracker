@@ -48,6 +48,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   const [pdf, setPdf] = useState<File | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<unknown>(null);
+  const [nameError, setNameError] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [newType, setNewType] = useState<string | null>(null);
   const set = <K extends keyof PatternInput>(k: K, v: PatternInput[K]) => setP({ ...p, [k]: v });
@@ -73,6 +74,9 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   async function submit(e: FormEvent) {
     e.preventDefault();
     setUploadError(null);
+    const blank = parts.some((x) => x.id && x.name.trim() === '');
+    setNameError(blank);
+    if (blank) return;
     let pdf_path = p.pdf_path;
     if (pdf) {
       try {
@@ -103,6 +107,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
       </header>
       {uploadError != null && <ErrorBox error={uploadError} />}
       {save.error && <ErrorBox error={save.error} />}
+      {nameError && <p role="alert" className="text-projects-dark">Give every part a name, or remove it with ×.</p>}
 
       <div className="flex gap-2">
         <label className="flex h-12 flex-1 cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-dashed border-muted bg-surface text-sm">
@@ -178,8 +183,8 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
             className="h-11 w-14 rounded-xl border border-line bg-surface text-center" />
           <button type="button" aria-label="Remove part" className="h-11 w-11 text-muted"
             onClick={() => {
-              const n = part.id ? counts.data?.get(part.id) ?? 0 : 0;
-              if (n > 0) setRemoving(i);
+              const n = part.id ? counts.data?.get(part.id) : 0;
+              if (part.id && (counts.data === undefined || (n ?? 0) > 0)) setRemoving(i);
               else setParts(parts.filter((_, j) => j !== i));
             }}>×</button>
         </div>
@@ -191,7 +196,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
       <ConfirmDialog
         open={removing !== null}
         title={`Remove ${removing !== null ? parts[removing].name : ''}?`}
-        message="Its instructions are deleted too when you save."
+        message={counts.data === undefined ? 'If it has instructions, they are deleted too when you save.' : 'Its instructions are deleted too when you save.'}
         confirmLabel="Remove"
         onCancel={() => setRemoving(null)}
         onConfirm={() => { setParts(parts.filter((_, j) => j !== removing)); setRemoving(null); }}

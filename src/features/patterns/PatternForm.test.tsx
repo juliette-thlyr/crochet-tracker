@@ -4,7 +4,7 @@ import { renderWithProviders } from '../../test/render';
 import PatternForm from './PatternForm';
 
 const save = vi.fn();
-const fixture = vi.hoisted(() => ({ pattern: undefined as unknown, counts: new Map<string, number>() }));
+const fixture = vi.hoisted(() => ({ pattern: undefined as unknown, counts: new Map<string, number>() as Map<string, number> | undefined }));
 vi.mock('./api', () => ({
   usePatternTypes: () => ({ data: [{ id: 't1', name: 'Amigurumi', position: 0 }, { id: 't2', name: 'Clothes', position: 1 }] }),
   useCreatePatternType: () => ({ mutate: vi.fn() }),
@@ -112,4 +112,21 @@ test('kept parts are sent with their id', async () => {
     expect.objectContaining({ parts: [{ id: 'pp1', name: 'Leg', count: 2, total_rows: 18 }] }),
     expect.anything(),
   );
+});
+
+test('while instruction counts are unknown, removing a kept part asks first', async () => {
+  fixture.pattern = leg();
+  fixture.counts = undefined;
+  renderWithProviders(<PatternForm />, { route: '/patterns/p1/edit', path: '/patterns/:id/edit' });
+  await userEvent.click(screen.getByRole('button', { name: 'Remove part' }));
+  expect(screen.getByRole('dialog', { name: 'Remove Leg?' })).toBeInTheDocument();
+});
+
+test('clearing the name of a kept part blocks saving', async () => {
+  fixture.pattern = leg();
+  renderWithProviders(<PatternForm />, { route: '/patterns/p1/edit', path: '/patterns/:id/edit' });
+  await userEvent.clear(screen.getByLabelText('Part name'));
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(screen.getByRole('alert')).toHaveTextContent('Give every part a name');
+  expect(save).not.toHaveBeenCalled();
 });
