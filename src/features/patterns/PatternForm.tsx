@@ -15,12 +15,12 @@ const emptyPart = (): PartDraft => ({ name: '', count: 1, total_rows: null });
 
 function toInput(p: PatternDetail | undefined): PatternInput {
   if (!p) {
-    return { name: '', pattern_type_id: null, designer: null, url: null, hook_size_mm: null, yarn_weight: null, notes: null, pdf_path: null };
+    return { name: '', pattern_type_id: null, designer: null, url: null, hook_size_mm: null, yarn_weight: null, notes: null, pdf_path: null, photo_path: null };
   }
   return {
     id: p.id, name: p.name, pattern_type_id: p.pattern_type_id, designer: p.designer, url: p.url,
     hook_size_mm: p.hook_size_mm === null ? null : Number(p.hook_size_mm), yarn_weight: p.yarn_weight,
-    notes: p.notes, pdf_path: p.pdf_path,
+    notes: p.notes, pdf_path: p.pdf_path, photo_path: p.photo_path,
   };
 }
 

@@ -10,5 +10,5 @@ test('useInvalidateAll refreshes every feature cache', async () => {
   const { result } = renderHook(() => useInvalidateAll(), { wrapper });
   await act(async () => { await result.current(); });
   const keys = spy.mock.calls.map((c) => c[0]?.queryKey?.[0]);
-  expect(keys.sort()).toEqual(['parts', 'pattern-types', 'patterns', 'projects', 'timer', 'yarns']);
+  expect(keys.sort()).toEqual(['instructions', 'parts', 'pattern-types', 'patterns', 'projects', 'timer', 'yarns']);
 });

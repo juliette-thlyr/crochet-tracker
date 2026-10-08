@@ -14,7 +14,7 @@ export type PatternListItem = Pattern & {
   avgSkeins: number | null;
 };
 export type PatternDetail = PatternListItem;
-export type PatternInput = Omit<Pattern, 'id' | 'user_id' | 'created_at' | 'updated_at'> & { id?: string };
+export type PatternInput = Omit<Pattern, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'pdf_updated_at'> & { id?: string };
 
 export function usePatternTypes() {
   return useQuery({

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
 
-export type Bucket = 'pattern-pdfs' | 'project-photos' | 'yarn-photos';
+export type Bucket = 'pattern-pdfs' | 'project-photos' | 'yarn-photos' | 'pattern-instructions' | 'pattern-photos';
 export const MAX_PDF_BYTES = 20 * 1024 * 1024;
 
 export async function uploadFile(bucket: Bucket, file: Blob, ext: 'jpg' | 'pdf'): Promise<string> {

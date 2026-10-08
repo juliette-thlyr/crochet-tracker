@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 
 /** Every cached feature root. Data is linked across features, so any change refreshes them all. */
-const ROOT_KEYS = ['projects', 'parts', 'timer', 'yarns', 'patterns', 'pattern-types'] as const;
+const ROOT_KEYS = ['projects', 'parts', 'timer', 'yarns', 'patterns', 'pattern-types', 'instructions'] as const;
 
 export function useInvalidateAll() {
   const qc = useQueryClient();

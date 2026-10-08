@@ -5,7 +5,26 @@ export type Database = {
   
   "public": {
           Tables: {
-            "part_yarns": {
+            "part_instructions": {
+                  Row: {
+                    "created_at": string,"id": string,"image_path": string,"kind": string,"pattern_part_id": string,"pdf_page": number | null,"position": number,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"image_path": string,"kind": string,"pattern_part_id": string,"pdf_page"?: number | null,"position"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"image_path"?: string,"kind"?: string,"pattern_part_id"?: string,"pdf_page"?: number | null,"position"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "part_instructions_pattern_part_id_fkey"
+      columns: ["pattern_part_id"]
+isOneToOne: false
+      referencedRelation: "pattern_parts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"part_yarns": {
                   Row: {
                     "created_at": string,"id": string,"part_id": string,"skeins_used": number,"updated_at": string,"user_id": string,"yarn_id": string
                   }
@@ -38,16 +57,22 @@ isOneToOne: false
                   ]
                 },"parts": {
                   Row: {
-                    "created_at": string,"current_row": number | null,"done": boolean,"id": string,"name": string,"notes": string | null,"position": number,"project_id": string,"resume_note": string | null,"total_rows": number | null,"updated_at": string,"user_id": string
+                    "created_at": string,"current_row": number | null,"done": boolean,"id": string,"name": string,"notes": string | null,"pattern_part_id": string | null,"position": number,"project_id": string,"resume_note": string | null,"total_rows": number | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name": string,"notes"?: string | null,"position"?: number,"project_id": string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name": string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id": string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name"?: string,"notes"?: string | null,"position"?: number,"project_id"?: string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name"?: string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id"?: string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "parts_pattern_part_id_fkey"
+      columns: ["pattern_part_id"]
+isOneToOne: false
+      referencedRelation: "pattern_parts"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "parts_project_id_fkey"
       columns: ["project_id"]
 isOneToOne: false
@@ -101,13 +126,13 @@ isOneToOne: false
                   ]
                 },"patterns": {
                   Row: {
-                    "created_at": string,"designer": string | null,"hook_size_mm": number | null,"id": string,"name": string,"notes": string | null,"pattern_type_id": string | null,"pdf_path": string | null,"updated_at": string,"url": string | null,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
+                    "created_at": string,"designer": string | null,"hook_size_mm": number | null,"id": string,"name": string,"notes": string | null,"pattern_type_id": string | null,"pdf_path": string | null,"pdf_updated_at": string | null,"photo_path": string | null,"updated_at": string,"url": string | null,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Insert: {
-                    "created_at"?: string,"designer"?: string | null,"hook_size_mm"?: number | null,"id"?: string,"name": string,"notes"?: string | null,"pattern_type_id"?: string | null,"pdf_path"?: string | null,"updated_at"?: string,"url"?: string | null,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "created_at"?: string,"designer"?: string | null,"hook_size_mm"?: number | null,"id"?: string,"name": string,"notes"?: string | null,"pattern_type_id"?: string | null,"pdf_path"?: string | null,"pdf_updated_at"?: string | null,"photo_path"?: string | null,"updated_at"?: string,"url"?: string | null,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Update: {
-                    "created_at"?: string,"designer"?: string | null,"hook_size_mm"?: number | null,"id"?: string,"name"?: string,"notes"?: string | null,"pattern_type_id"?: string | null,"pdf_path"?: string | null,"updated_at"?: string,"url"?: string | null,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "created_at"?: string,"designer"?: string | null,"hook_size_mm"?: number | null,"id"?: string,"name"?: string,"notes"?: string | null,"pattern_type_id"?: string | null,"pdf_path"?: string | null,"pdf_updated_at"?: string | null,"photo_path"?: string | null,"updated_at"?: string,"url"?: string | null,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Relationships: [
                     {
@@ -270,7 +295,13 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "start_project_from_pattern":
+            "add_skeins":
+{ Args: { "p_amount": number,"p_yarn_id": string }; Returns: undefined
+                           },
+"backfill_part_links":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"start_project_from_pattern":
 { Args: { "p_pattern_id": string }; Returns: string
                            },
 "start_timer":
