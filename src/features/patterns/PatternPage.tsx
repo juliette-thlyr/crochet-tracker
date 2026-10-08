@@ -5,13 +5,14 @@ import ErrorBox from '../../components/ErrorBox';
 import { expandPatternParts, formatDuration, formatHook } from '../../lib/calc';
 import { weightLabel } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
-import { useDeletePattern, usePattern, useStartProject } from './api';
+import { useDeletePattern, usePattern, usePatternInstructionCounts, useStartProject } from './api';
 import PatternThumb from './PatternThumb';
 
 export default function PatternPage() {
   const { id } = useParams() as { id: string };
   const navigate = useNavigate();
   const { data: p, isPending, error, refetch } = usePattern(id);
+  const counts = usePatternInstructionCounts(id);
   const start = useStartProject();
   const del = useDeletePattern();
   const [confirming, setConfirming] = useState(false);
@@ -59,9 +60,12 @@ export default function PatternPage() {
       <h2 className="text-sm uppercase tracking-wide text-muted">Parts · {expandPatternParts(p.parts).length} when started</h2>
       <ul className="rounded-2xl border border-line bg-surface">
         {p.parts.map((part) => (
-          <li key={part.id} className="flex justify-between border-b border-divider px-3.5 py-2.5 last:border-b-0">
+          <li key={part.id} className="flex items-center justify-between gap-2 border-b border-divider px-3.5 py-2.5 last:border-b-0">
             <span>{part.name} {part.count > 1 && <span className="text-patterns">×{part.count}</span>}</span>
-            <span className="text-muted">{part.total_rows === null ? '—' : `${part.total_rows} rows`}</span>
+            <span className="flex-1 text-muted">{part.total_rows === null ? '—' : `${part.total_rows} rows`}</span>
+            <Link to={`/patterns/${id}/parts/${part.id}`} className="flex min-h-11 items-center text-sm text-patterns">
+              Instructions · {counts.data?.get(part.id) ?? 0}
+            </Link>
           </li>
         ))}
       </ul>
