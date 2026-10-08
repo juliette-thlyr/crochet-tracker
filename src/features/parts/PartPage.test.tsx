@@ -10,7 +10,7 @@ const deleteSession = vi.fn();
 const removeYarn = vi.fn();
 const fixture = {
   id: 'pt1', name: 'Leg 1', project_id: 'pr1', position: 1, done: false, current_row: 12, total_rows: 18,
-  resume_note: 'After the 2nd increase round', notes: null,
+  pattern_part_id: 'pp1', resume_note: 'After the 2nd increase round', notes: null,
   project: { id: 'pr1', name: 'T-rex for Léo' },
   time_sessions: [
     { id: 's1', started_at: '2026-09-23T21:05:00Z', ended_at: '2026-09-23T21:30:00Z' },
@@ -39,6 +39,10 @@ vi.mock('../timer/api', () => ({
       error: null,
     };
   },
+}));
+vi.mock('../timer/PartTimerButton', () => ({ default: ({ partId }: { partId: string }) => <div data-testid="timer">{partId}</div> }));
+vi.mock('../instructions/InstructionsSection', () => ({
+  default: ({ patternPartId }: { patternPartId: string }) => <div data-testid="instructions">{patternPartId}</div>,
 }));
 vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [] }) }));
 
@@ -108,4 +112,10 @@ test('removing a yarn record asks for confirmation first', async () => {
   expect(removeYarn).not.toHaveBeenCalled();
   await userEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
   expect(removeYarn).toHaveBeenCalledExactlyOnceWith('u1');
+});
+
+test('the part page has the timer and the instructions of its pattern part', () => {
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  expect(screen.getByTestId('timer')).toHaveTextContent('pt1');
+  expect(screen.getByTestId('instructions')).toHaveTextContent('pp1');
 });

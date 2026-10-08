@@ -5,7 +5,9 @@ import ErrorBox from '../../components/ErrorBox';
 import { formatDuration, formatSkeins, sessionSeconds, sumSeconds } from '../../lib/calc';
 import { useDeletePart, useUpdatePart } from '../projects/api';
 import { useYarns } from '../stash/api';
+import InstructionsSection from '../instructions/InstructionsSection';
 import { useSetRow } from '../timer/api';
+import PartTimerButton from '../timer/PartTimerButton';
 import { useDeleteSession, usePart, useRemoveYarnUsage, useSaveSession, useSetYarnUsage, type Session } from './api';
 import RowCounter from './RowCounter';
 import SessionForm from './SessionForm';
@@ -80,6 +82,7 @@ export default function PartPage() {
           Done
         </label>
       </div>
+      <PartTimerButton partId={id} />
 
       <section className="flex flex-col gap-3 rounded-3xl border border-line bg-surface p-4">
         <RowCounter current={part.current_row} total={part.total_rows} onChange={(r) => setRow.mutate({ partId: id, row: r })} />
@@ -89,6 +92,7 @@ export default function PartPage() {
             className="resize-none rounded-xl border border-line bg-bg p-2.5 text-base text-ink" />
         </label>
       </section>
+      {part.pattern_part_id && <InstructionsSection patternPartId={part.pattern_part_id} />}
 
       <div className="flex items-center justify-between">
         <h2 className={h2}>Time · {formatDuration(sumSeconds(part.time_sessions, now))}</h2>
