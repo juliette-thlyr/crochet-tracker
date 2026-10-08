@@ -27,7 +27,7 @@ export default function NewProject() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <Link to="/" className="flex min-h-11 items-center self-start text-projects">‹ Cancel</Link>
-      <h1 className="text-4xl">New project</h1>
+      <h1 className="text-4xl text-projects">New project</h1>
       <p className="text-muted">Pick a pattern: its parts are copied in.</p>
       <input type="search" aria-label="Search patterns" placeholder="Search patterns" value={search}
         onChange={(e) => setSearch(e.target.value)} className="h-12 rounded-full border border-line bg-surface px-4" />

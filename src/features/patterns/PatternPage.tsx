@@ -31,7 +31,7 @@ export default function PatternPage() {
         <Link to={`/patterns/${id}/edit`} className="flex min-h-11 items-center text-patterns">Edit</Link>
       </header>
       <PatternThumb path={p.photo_path} className="h-48 w-full rounded-3xl" />
-      <h1 className="text-4xl">{p.name}</h1>
+      <h1 className="text-4xl text-patterns">{p.name}</h1>
       {p.type && <span className="self-start rounded-lg bg-patterns-soft px-2.5 py-0.5 text-sm text-patterns-dark">{p.type.name}</span>}
       {meta && <p className="text-sm text-muted">{meta}</p>}
 

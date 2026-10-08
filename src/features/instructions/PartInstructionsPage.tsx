@@ -50,7 +50,7 @@ export default function PartInstructionsPage() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <Link to={`/patterns/${id}`} className="flex min-h-11 items-center self-start text-patterns">‹ {p.name}</Link>
-      <h1 className="text-3xl">{p.name} · {part.name}</h1>
+      <h1 className="text-3xl text-patterns">{p.name} · {part.name}</h1>
       {error && <ErrorBox error={error} />}
       {pdfReplaced && <p className="rounded-xl bg-sun-track p-3 text-sm">The PDF was replaced — re-add pages if they changed.</p>}
 

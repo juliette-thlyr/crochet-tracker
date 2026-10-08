@@ -102,7 +102,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
     <form onSubmit={submit} className="flex flex-col gap-3 p-4">
       <header className="flex items-center justify-between">
         <button type="button" onClick={() => navigate(-1)} className="min-h-11 text-patterns">Cancel</button>
-        <h1 className="text-2xl">{initial.id ? 'Edit pattern' : 'New pattern'}</h1>
+        <h1 className="text-2xl text-patterns">{initial.id ? 'Edit pattern' : 'New pattern'}</h1>
         <button type="submit" disabled={save.isPending} className="min-h-11 text-patterns">Save</button>
       </header>
       {uploadError != null && <ErrorBox error={uploadError} />}

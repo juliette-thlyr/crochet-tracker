@@ -38,7 +38,7 @@ export default function TypesPage() {
   return (
     <div className="flex flex-col gap-3 p-4">
       <Link to="/patterns" className="flex min-h-11 items-center self-start text-patterns">‹ Patterns</Link>
-      <h1 className="text-4xl">Pattern types</h1>
+      <h1 className="text-4xl text-patterns">Pattern types</h1>
       {mutationError && <ErrorBox error={mutationError} />}
       <ul className="rounded-2xl border border-line bg-surface">
         {types.map((t, i) => (

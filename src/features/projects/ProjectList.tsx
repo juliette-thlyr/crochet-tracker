@@ -39,7 +39,7 @@ function ProjectCard({ project: p }: { project: ProjectListItem }) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <span className="flex items-baseline justify-between gap-2">
-          <span className="text-lg">{p.name}</span>
+          <span className="text-lg text-projects">{p.name}</span>
           <span className="text-sm text-muted">{formatDuration(p.seconds)}</span>
         </span>
         <span className="text-sm text-muted">{p.pattern?.name ?? 'No pattern'}</span>

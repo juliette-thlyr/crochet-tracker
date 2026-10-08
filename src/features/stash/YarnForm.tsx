@@ -52,7 +52,7 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
     <form onSubmit={submit} className="flex flex-col gap-3 p-4">
       <header className="flex items-center justify-between">
         <button type="button" onClick={() => navigate(-1)} className="min-h-11 text-stash">Cancel</button>
-        <h1 className="text-2xl">{initial.id ? 'Edit yarn' : 'New yarn'}</h1>
+        <h1 className="text-2xl text-stash">{initial.id ? 'Edit yarn' : 'New yarn'}</h1>
         <button type="submit" disabled={save.isPending} className="min-h-11 text-stash">Save</button>
       </header>
       {uploadError != null && <ErrorBox error={uploadError} />}

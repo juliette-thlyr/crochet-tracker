@@ -76,7 +76,7 @@ function YarnCard({ yarn }: { yarn: YarnWithStock }) {
         )}
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
-        <span className="text-base">{yarn.name}</span>
+        <span className="text-base text-stash">{yarn.name}</span>
         <span className="text-xs text-muted">{[yarn.brand, weightLabel(yarn.yarn_weight)].filter(Boolean).join(' · ')}</span>
         <span className="mt-1 text-sm">{formatSkeins(yarn.free)} free <span className="text-muted">/ {formatSkeins(yarn.owned)}</span></span>
       </div>

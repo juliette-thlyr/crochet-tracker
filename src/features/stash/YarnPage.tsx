@@ -40,7 +40,7 @@ export default function YarnPage() {
       </div>
       <div className="flex flex-col gap-3.5 p-4">
         <div>
-          <h1 className="text-3xl">{yarn.name}</h1>
+          <h1 className="text-3xl text-stash">{yarn.name}</h1>
           <p className="text-sm text-muted">{[yarn.brand, weightLabel(yarn.yarn_weight), yarn.fiber].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="grid grid-cols-4 gap-1.5">

@@ -47,7 +47,7 @@ export default function PatternList() {
           <PatternThumb path={p.photo_path} className="h-16 w-16 shrink-0 rounded-xl" />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="flex items-center justify-between gap-2">
-              <span className="text-lg">{p.name}</span>
+              <span className="text-lg text-patterns">{p.name}</span>
               {p.type && <span className="rounded-lg bg-patterns-soft px-2 text-xs text-patterns-dark">{p.type.name}</span>}
             </span>
             <span className="text-sm text-muted">{patternMeta(p)}</span>

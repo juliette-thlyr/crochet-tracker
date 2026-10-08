@@ -30,7 +30,7 @@ export default function TimerTab() {
         {list.map((p) => (
           <li key={p.id} className="flex items-center gap-2.5 border-b border-divider py-1.5 pl-3.5 pr-2 last:border-b-0">
             <span className="flex flex-1 flex-col">
-              <span>{p.name} · {p.project?.name}</span>
+              <span className="text-timer">{p.name} · {p.project?.name}</span>
               <span className="text-xs text-muted">
                 {p.done ? 'Done' : rowLabel(p.current_row, p.total_rows)}
                 {p.resume_note && ` · ${p.resume_note}`}

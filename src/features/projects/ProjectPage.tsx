@@ -69,7 +69,7 @@ export default function ProjectPage() {
               }} />
           ) : (
             <button type="button" onClick={() => setRenaming(true)} className="min-h-11 self-start text-left">
-              <h1 className="text-3xl">{p.name}</h1>
+              <h1 className="text-3xl text-projects">{p.name}</h1>
             </button>
           )}
           <span className="text-sm text-muted">

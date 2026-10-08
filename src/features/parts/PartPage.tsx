@@ -66,7 +66,7 @@ export default function PartPage() {
       <div className="flex items-center justify-between">
         {renaming === null ? (
           <button type="button" onClick={() => setRenaming(part.name)} className="min-h-11 text-left">
-            <h1 className="text-4xl">{part.name}</h1>
+            <h1 className="text-4xl text-projects">{part.name}</h1>
           </button>
         ) : (
           <input autoFocus aria-label="Part name" value={renaming} onChange={(e) => setRenaming(e.target.value)}
