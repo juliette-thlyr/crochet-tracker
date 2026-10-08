@@ -62,12 +62,15 @@ export default function PartInstructionsPage() {
         {!p.pdf_path && <p className="text-sm text-muted">Attach a PDF to the pattern first.</p>}
         {pageError && <p role="alert" className="text-projects-dark">{pageError}</p>}
         <button type="button" onClick={submitPages} disabled={!p.pdf_path || busy}
-          className="h-11 self-start rounded-full bg-patterns px-5 text-white">Add pages</button>
+          aria-label="Add pages" aria-busy={addPages.isPending}
+          className="h-11 self-start rounded-full bg-patterns px-5 text-white">
+          {addPages.isPending ? 'Converting pages…' : 'Add pages'}
+        </button>
       </section>
 
-      <label className="flex min-h-11 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-dashed border-muted bg-surface px-4 text-sm">
-        {busy ? 'Adding…' : 'Add photos'}
-        <input type="file" accept="image/*" multiple className="sr-only" aria-label="Add photos"
+      <label aria-busy={busy} className="flex min-h-11 cursor-pointer items-center justify-center rounded-full border-[1.5px] border-dashed border-muted bg-surface px-4 text-sm">
+        {addPhotos.isPending ? 'Adding…' : 'Add photos'}
+        <input type="file" accept="image/*" multiple className="sr-only" aria-label="Add photos" disabled={busy}
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
             e.target.value = '';

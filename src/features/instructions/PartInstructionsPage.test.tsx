@@ -10,6 +10,7 @@ const fx = vi.hoisted(() => ({
   pdfPath: 'u/t-rex.pdf' as string | null,
   pdfUpdatedAt: '2026-10-01T10:00:00Z' as string | null,
   list: [] as unknown[],
+  pagesPending: false,
 }));
 
 vi.mock('../patterns/api', () => ({
@@ -23,7 +24,7 @@ vi.mock('../patterns/api', () => ({
 }));
 vi.mock('./api', () => ({
   usePartInstructions: () => ({ data: fx.list, isPending: false, error: null }),
-  useAddPdfPages: () => ({ mutate: addPages, isPending: false, error: null }),
+  useAddPdfPages: () => ({ mutate: addPages, isPending: fx.pagesPending, error: null }),
   useAddInstructionPhotos: () => ({ mutate: addPhotos, isPending: false, error: null }),
   useRemoveInstruction: () => ({ mutate: remove, error: null }),
   nextInstructionPosition: (l: { position: number }[]) => l.length,
@@ -35,6 +36,7 @@ beforeEach(() => {
   fx.pdfPath = 'u/t-rex.pdf';
   fx.pdfUpdatedAt = '2026-10-01T10:00:00Z';
   fx.list = [];
+  fx.pagesPending = false;
   addPages.mockClear(); addPhotos.mockClear(); remove.mockClear();
 });
 
@@ -87,4 +89,12 @@ test('a note appears when the PDF was replaced after pages were added', () => {
   fx.list = [{ id: 'i1', position: 0, kind: 'pdf_page', pdf_page: 3, image_path: 'u/p3.jpg', created_at: '2026-10-02T00:00:00Z' }];
   renderWithProviders(<PartInstructionsPage />, route);
   expect(screen.getByText('The PDF was replaced — re-add pages if they changed.')).toBeInTheDocument();
+});
+
+test('while pages convert, the button shows progress and photos are blocked', () => {
+  fx.pagesPending = true;
+  renderWithProviders(<PartInstructionsPage />, route);
+  expect(screen.getByRole('button', { name: 'Add pages' })).toHaveTextContent('Converting pages…');
+  expect(screen.getByRole('button', { name: 'Add pages' })).toBeDisabled();
+  expect(screen.getByLabelText('Add photos')).toBeDisabled();
 });
