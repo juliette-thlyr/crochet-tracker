@@ -34,6 +34,7 @@ vi.mock('./api', () => ({
   useAddProjectPhoto: () => ({ mutate: vi.fn(), isPending: false }),
   useDeleteProject: () => ({ mutate: vi.fn() }),
 }));
+vi.mock('./UpdateFromPattern', () => ({ default: () => <p>update panel</p> }));
 vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [] }) }));
 vi.mock('../timer/StartTimerButton', () => ({ default: () => null }));
 vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
@@ -85,4 +86,10 @@ test('a planned yarn can be removed after confirmation', async () => {
   expect(removePlan).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
   expect(removePlan).toHaveBeenCalledWith({ projectId: 'pr1', yarnId: 'y1' });
+});
+
+test('"Update from pattern" opens the update panel', async () => {
+  renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
+  await userEvent.click(screen.getByRole('button', { name: 'Update from pattern' }));
+  expect(screen.getByText('update panel')).toBeInTheDocument();
 });

@@ -3,6 +3,7 @@ import { resizeImage } from '../../lib/images';
 import { useInvalidateAll } from '../../lib/invalidate';
 import { uploadFile } from '../../lib/storage';
 import { supabase, type Tables } from '../../lib/supabase';
+import type { Json } from '../../lib/database.types';
 
 export type Project = Tables<'projects'>;
 export type Part = Tables<'parts'>;
@@ -184,6 +185,17 @@ export function useRemovePlan() {
   return useMutation({
     mutationFn: async ({ projectId, yarnId }: { projectId: string; yarnId: string }) => {
       const { error } = await supabase.from('project_yarns').delete().eq('project_id', projectId).eq('yarn_id', yarnId);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function useApplyPatternUpdate() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async ({ projectId, changes }: { projectId: string; changes: Record<string, unknown>[] }) => {
+      const { error } = await supabase.rpc('apply_pattern_update', { p_project_id: projectId, p_changes: changes as Json });
       if (error) throw error;
     },
     onSuccess: invalidate,

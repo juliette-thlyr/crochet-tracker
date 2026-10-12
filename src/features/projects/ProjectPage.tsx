@@ -11,6 +11,7 @@ import {
   useAddPart, useAddProjectPhoto, useDeletePart, useDeleteProject, useMovePart, usePlanYarn, useProject,
   useRemovePlan, useUpdatePart, useUpdateProject, type ProjectPart,
 } from './api';
+import UpdateFromPattern from './UpdateFromPattern';
 import { projectYarnLines, STATUS_ORDER } from './logic';
 import NumberField from '../../components/NumberField';
 
@@ -31,6 +32,7 @@ export default function ProjectPage() {
   const deleteProject = useDeleteProject();
   const yarns = useYarns();
   const [editing, setEditing] = useState(false);
+  const [updating, setUpdating] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [newPart, setNewPart] = useState<string | null>(null);
   const [plan, setPlan] = useState<{ yarnId: string; skeins: number } | null>(null);
@@ -101,6 +103,13 @@ export default function ProjectPage() {
         <span className="rounded-full border border-line bg-surface px-3 py-1 text-sm">{formatDuration(total)} total</span>
         <span className="rounded-full border border-line bg-surface px-3 py-1 text-sm">{formatSkeins(skeins)}</span>
       </div>
+
+      {p.pattern && (updating ? (
+        <UpdateFromPattern project={p} onClose={() => setUpdating(false)} />
+      ) : (
+        <button type="button" onClick={() => setUpdating(true)}
+          className="h-11 self-start rounded-full border border-line px-5 text-projects">Update from pattern</button>
+      ))}
 
       <div className="flex items-baseline justify-between">
         <h2 className={h2}>Parts · {done} of {p.parts.length} done</h2>
