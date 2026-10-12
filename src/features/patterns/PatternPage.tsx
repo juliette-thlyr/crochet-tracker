@@ -6,6 +6,7 @@ import { expandPatternParts, formatDuration, formatHook } from '../../lib/calc';
 import { weightLabel } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useDeletePattern, usePattern, usePatternInstructionCounts, useStartProject } from './api';
+import MaterialsList from '../materials/MaterialsList';
 import PatternThumb from './PatternThumb';
 
 export default function PatternPage() {
@@ -69,6 +70,7 @@ export default function PatternPage() {
           </li>
         ))}
       </ul>
+      <MaterialsList yarnLines={p.yarn_lines} materials={p.materials} />
 
       {start.error && <ErrorBox error={start.error} />}
       {del.error && <ErrorBox error={del.error} />}

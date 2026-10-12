@@ -7,7 +7,10 @@ import { resizeImage } from '../../lib/images';
 import { WEIGHTS, type YarnWeight } from '../../lib/labels';
 import { MAX_PDF_BYTES, uploadFile } from '../../lib/storage';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import { useCreatePatternType, usePattern, usePatternInstructionCounts, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
+import { useCreatePatternType, usePattern, usePatternInstructionCounts, useMaterialNames, usePatternTypes, useSavePattern, type PatternDetail, type PatternInput } from './api';
+import { useCatalog } from '../lists/api';
+import type { MaterialDraft, YarnLineDraft } from '../materials/logic';
+import MaterialsSection from '../materials/MaterialsSection';
 import { nextTypePosition, type PartDraft } from './logic';
 import NumberField from '../../components/NumberField';
 
@@ -33,10 +36,18 @@ export default function PatternForm() {
   if (id && existing.error) return <ErrorBox error={existing.error} />;
   if (id && !existing.data) return <p className="p-4 text-muted">Loading…</p>;
   const parts = existing.data?.parts.map((p) => ({ id: p.id, name: p.name, count: p.count, total_rows: p.total_rows }));
-  return <PatternFormBody initial={toInput(existing.data)} initialParts={parts ?? [emptyPart()]} />;
+  const yarnLines: YarnLineDraft[] = (existing.data?.yarn_lines ?? []).map((y) => ({
+    id: y.id, color: y.color, color_family: y.color_family, skeins: y.skeins === null ? null : Number(y.skeins), yarn_type: y.yarn_type ?? '',
+  }));
+  const materials: MaterialDraft[] = (existing.data?.materials ?? []).map((m) => ({
+    id: m.id, name: m.name, quantity: m.quantity === null ? null : Number(m.quantity),
+  }));
+  return <PatternFormBody initial={toInput(existing.data)} initialParts={parts ?? [emptyPart()]} initialYarnLines={yarnLines} initialMaterials={materials} />;
 }
 
-function PatternFormBody({ initial, initialParts }: { initial: PatternInput; initialParts: PartDraft[] }) {
+function PatternFormBody({ initial, initialParts, initialYarnLines, initialMaterials }: {
+  initial: PatternInput; initialParts: PartDraft[]; initialYarnLines: YarnLineDraft[]; initialMaterials: MaterialDraft[];
+}) {
   const navigate = useNavigate();
   const types = usePatternTypes();
   const createType = useCreatePatternType();
@@ -45,6 +56,10 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
   const [removing, setRemoving] = useState<number | null>(null);
   const [p, setP] = useState(initial);
   const [parts, setParts] = useState(initialParts);
+  const [yarnLines, setYarnLines] = useState(initialYarnLines);
+  const [materials, setMaterials] = useState(initialMaterials);
+  const catalog = useCatalog();
+  const materialNames = useMaterialNames();
   const [pdf, setPdf] = useState<File | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState<unknown>(null);
@@ -95,7 +110,7 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         return;
       }
     }
-    save.mutate({ pattern: { ...p, pdf_path, photo_path }, parts }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
+    save.mutate({ pattern: { ...p, pdf_path, photo_path }, parts, yarnLines, materials }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
   }
 
   return (
@@ -190,6 +205,9 @@ function PatternFormBody({ initial, initialParts }: { initial: PatternInput; ini
         </div>
       ))}
       <button type="button" onClick={() => setParts([...parts, emptyPart()])} className="h-11 self-start text-patterns">+ Add part</button>
+
+      <MaterialsSection yarnLines={yarnLines} onYarnLines={setYarnLines} materials={materials} onMaterials={setMaterials}
+        yarnTypes={(catalog.data ?? []).map((c) => `${c.brand} ${c.name}`)} materialNames={materialNames.data ?? []} />
 
       <label className={label}>Notes<textarea rows={3} className="rounded-xl border border-line bg-surface p-3" value={p.notes ?? ''} onChange={(e) => set('notes', text(e.target.value))} /></label>
 

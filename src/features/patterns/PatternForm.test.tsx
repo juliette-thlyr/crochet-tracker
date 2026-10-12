@@ -10,8 +10,10 @@ vi.mock('./api', () => ({
   useCreatePatternType: () => ({ mutate: vi.fn() }),
   usePattern: () => ({ data: fixture.pattern, isPending: false, error: null }),
   usePatternInstructionCounts: () => ({ data: fixture.counts }),
+  useMaterialNames: () => ({ data: [] }),
   useSavePattern: () => ({ mutate: save, isPending: false, error: null }),
 }));
+vi.mock('../lists/api', () => ({ useCatalog: () => ({ data: [] }) }));
 const uploadFile = vi.fn();
 beforeEach(() => { fixture.pattern = undefined; fixture.counts = new Map(); save.mockClear(); });
 vi.mock('../../lib/storage', () => ({
@@ -44,9 +46,24 @@ test('saves the pattern with type, recommended hook and parts', async () => {
         { name: 'Head', count: 1, total_rows: 24 },
         { name: 'Leg', count: 2, total_rows: null },
       ],
+      yarnLines: [], materials: [],
     },
     expect.anything(),
   );
+});
+
+test('saves materials with the pattern', async () => {
+  renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
+  await userEvent.type(screen.getByLabelText('Name'), 'Bunny');
+  await userEvent.click(screen.getByRole('button', { name: '+ Yarn' }));
+  await userEvent.type(screen.getByLabelText('Colour'), 'Pink');
+  await userEvent.click(screen.getByRole('button', { name: '+ Material' }));
+  await userEvent.type(screen.getByLabelText('Material'), 'Safety eyes 10 mm');
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({
+    yarnLines: [{ color: 'Pink', color_family: null, skeins: null, yarn_type: '' }],
+    materials: [{ name: 'Safety eyes 10 mm', quantity: null }],
+  }), expect.anything());
 });
 
 test('tapping the selected type again clears it', async () => {
@@ -91,6 +108,7 @@ const leg = () => ({
   id: 'p1', name: 'T-rex', pattern_type_id: null, designer: null, url: null, hook_size_mm: null,
   yarn_weight: null, notes: null, pdf_path: null, photo_path: null, pdf_updated_at: null,
   parts: [{ id: 'pp1', name: 'Leg', count: 2, total_rows: 18, position: 0 }],
+  yarn_lines: [], materials: [],
 });
 
 test('removing a part that has instructions asks first', async () => {

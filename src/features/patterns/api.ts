@@ -1,14 +1,19 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase, type Tables } from '../../lib/supabase';
+import { cleanMaterials, cleanYarnLines, planRows, type MaterialDraft, type YarnLineDraft } from '../materials/logic';
 import { planPartChanges, type PartDraft } from './logic';
 
 export type Pattern = Tables<'patterns'>;
 export type PatternType = Tables<'pattern_types'>;
 export type PatternPart = Tables<'pattern_parts'>;
+export type PatternYarn = Tables<'pattern_yarns'>;
+export type PatternMaterial = Tables<'pattern_materials'>;
 export type PatternListItem = Pattern & {
   type: PatternType | null;
   parts: PatternPart[];
+  yarn_lines: PatternYarn[];
+  materials: PatternMaterial[];
   timesMade: number;
   avgSeconds: number | null;
   avgSkeins: number | null;
@@ -82,7 +87,9 @@ export function useDeletePatternType() {
 }
 
 async function fetchPatterns(id?: string): Promise<PatternListItem[]> {
-  let pq = supabase.from('patterns').select('*, type:pattern_types(*), parts:pattern_parts(*)').order('name');
+  let pq = supabase.from('patterns')
+    .select('*, type:pattern_types(*), parts:pattern_parts(*), yarn_lines:pattern_yarns(*), materials:pattern_materials(*)')
+    .order('name');
   let sq = supabase.from('pattern_stats').select();
   if (id) {
     pq = pq.eq('id', id);
@@ -97,6 +104,8 @@ async function fetchPatterns(id?: string): Promise<PatternListItem[]> {
     return {
       ...pattern,
       parts: [...pattern.parts].sort((a, b) => a.position - b.position),
+      yarn_lines: [...pattern.yarn_lines].sort((a, b) => a.position - b.position),
+      materials: [...pattern.materials].sort((a, b) => a.position - b.position),
       timesMade: st?.times_made ?? 0,
       avgSeconds: st?.avg_seconds ?? null,
       avgSkeins: st?.avg_skeins === null || st?.avg_skeins === undefined ? null : Number(st.avg_skeins),
@@ -120,10 +129,35 @@ export function usePattern(id: string | undefined) {
   });
 }
 
+type RowTable = 'pattern_yarns' | 'pattern_materials';
+
+/** Update kept rows, insert new ones, delete removed ones (same approach as pattern parts). */
+async function syncRows(table: RowTable, patternId: string, rows: { id?: string }[]) {
+  // Both tables change the same way; the cast keeps supabase-js's per-table row types out of the way.
+  const t = () => supabase.from(table as 'pattern_yarns');
+  const old = await t().select('id').eq('pattern_id', patternId);
+  if (old.error) throw old.error;
+  const plan = planRows(old.data.map((r) => r.id), rows);
+  for (const { id, ...fields } of plan.updates) {
+    const up = await t().update(fields as never).eq('id', id);
+    if (up.error) throw up.error;
+  }
+  if (plan.inserts.length > 0) {
+    const ins = await t().insert(plan.inserts.map((r) => ({ ...r, pattern_id: patternId })) as never);
+    if (ins.error) throw ins.error;
+  }
+  if (plan.deleteIds.length > 0) {
+    const del = await t().delete().in('id', plan.deleteIds);
+    if (del.error) throw del.error;
+  }
+}
+
 export function useSavePattern() {
   const invalidate = useInvalidateAll();
   return useMutation({
-    mutationFn: async ({ pattern, parts }: { pattern: PatternInput; parts: PartDraft[] }): Promise<string> => {
+    mutationFn: async ({ pattern, parts, yarnLines, materials }: {
+      pattern: PatternInput; parts: PartDraft[]; yarnLines: YarnLineDraft[]; materials: MaterialDraft[];
+    }): Promise<string> => {
       const { id, ...fields } = pattern;
       const saved = id
         ? await supabase.from('patterns').update(fields).eq('id', id).select('id').single()
@@ -146,6 +180,8 @@ export function useSavePattern() {
         const del = await supabase.from('pattern_parts').delete().in('id', plan.deleteIds);
         if (del.error) throw del.error;
       }
+      await syncRows('pattern_yarns', patternId, cleanYarnLines(yarnLines));
+      await syncRows('pattern_materials', patternId, cleanMaterials(materials));
       return patternId;
     },
     onSuccess: invalidate,
@@ -190,5 +226,17 @@ export function useStartProject() {
       return data;
     },
     onSuccess: invalidate,
+  });
+}
+
+/** Names of other materials already used on any pattern, for suggestions. */
+export function useMaterialNames() {
+  return useQuery({
+    queryKey: ['patterns', 'material-names'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('pattern_materials').select('name');
+      if (error) throw error;
+      return [...new Set(data.map((m) => m.name))].sort((a, b) => a.localeCompare(b));
+    },
   });
 }
