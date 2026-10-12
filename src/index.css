@@ -40,3 +40,8 @@ button, input, select, textarea {
   font: inherit;
   color: inherit;
 }
+
+/* iOS zooms into any field whose text is under 16px; fields inherit their label's size, so keep at least 16px. */
+input, select, textarea {
+  font-size: max(16px, 1em);
+}
