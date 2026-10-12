@@ -220,8 +220,8 @@ export function useDeletePattern() {
 export function useStartProject() {
   const invalidate = useInvalidateAll();
   return useMutation({
-    mutationFn: async (patternId: string): Promise<string> => {
-      const { data, error } = await supabase.rpc('start_project_from_pattern', { p_pattern_id: patternId });
+    mutationFn: async ({ patternId, plans = [] }: { patternId: string; plans?: { yarn_id: string; skeins: number }[] }): Promise<string> => {
+      const { data, error } = await supabase.rpc('start_project_from_pattern', { p_pattern_id: patternId, p_plans: plans });
       if (error) throw error;
       return data;
     },

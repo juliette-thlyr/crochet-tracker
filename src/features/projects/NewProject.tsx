@@ -36,7 +36,7 @@ export default function NewProject() {
       {(start.error || blank.error) && <ErrorBox error={start.error ?? blank.error} />}
       <div className="grid grid-cols-2 gap-2.5">
         {shown.map((p) => (
-          <button key={p.id} type="button" disabled={start.isPending} onClick={() => start.mutate(p.id, open)}
+          <button key={p.id} type="button" disabled={start.isPending} onClick={() => (p.yarn_lines.length > 0 ? navigate(`/patterns/${p.id}/start`) : start.mutate({ patternId: p.id }, open))}
             className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-2.5 text-left">
             <PatternThumb path={p.photo_path} className="h-24 rounded-xl" />
             <span className="text-base">{p.name}</span>

@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Login from './features/auth/Login';
 import { useSession } from './features/auth/useSession';
 import PartInstructionsPage from './features/instructions/PartInstructionsPage';
+import StartProjectPage from './features/projects/StartProjectPage';
 import PatternForm from './features/patterns/PatternForm';
 import PatternList from './features/patterns/PatternList';
 import PatternPage from './features/patterns/PatternPage';
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="patterns/new" element={<PatternForm />} />
         <Route path="patterns/types" element={<TypesPage />} />
         <Route path="patterns/:id" element={<PatternPage />} />
+        <Route path="patterns/:id/start" element={<StartProjectPage />} />
         <Route path="patterns/:id/edit" element={<PatternForm />} />
         <Route path="patterns/:id/parts/:partId" element={<PartInstructionsPage />} />
         <Route path="timer" element={<TimerTab />} />
