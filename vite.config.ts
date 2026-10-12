@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { readFileSync } from 'node:fs';
 import type { Plugin } from 'vite';
+import { assetFileName } from './src/lib/assetFileName';
 
 // The live site sits behind Netlify visitor access. iOS fetches the home-screen
 // icon without the visitor's login, so the icon is embedded in the page instead.
@@ -56,6 +57,7 @@ export default defineConfig({
   ],
   server: { port: 7420, strictPort: true },
   preview: { port: 7420, strictPort: true },
+  build: { rollupOptions: { output: { assetFileNames: assetFileName } } },
   test: {
     globals: true,
     environment: 'jsdom',
