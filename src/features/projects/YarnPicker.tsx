@@ -10,7 +10,7 @@ type Props = { yarns: YarnWithStock[]; initialFamily: ColourFamily | null; onPic
 export default function YarnPicker({ yarns, initialFamily, onPick }: Props) {
   const [family, setFamily] = useState<ColourFamily | null>(initialFamily);
   const [search, setSearch] = useState('');
-  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => yarns.some((y) => y.color_family === f));
+  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => yarns.some((y) => y.color_family === f) || f === family);
   const shown = filterYarns(yarns, { weight: 'all', fiber: 'all', lowOnly: false, search, family: family ?? 'all' });
 
   return (
@@ -19,7 +19,7 @@ export default function YarnPicker({ yarns, initialFamily, onPick }: Props) {
         onChange={(e) => { setSearch(e.target.value); setFamily(null); }}
         className="h-11 rounded-full border border-line bg-surface px-4" />
       {families.length > 0 && <ColourDots label="Yarn colour" value={family} families={families} onChange={setFamily} />}
-      {shown.length === 0 && <p className="text-sm text-muted">No yarn here. Tap the dot again to see every colour.</p>}
+      {shown.length === 0 && <p className="text-sm text-muted">No yarn in this colour. Tap the dot again to see every colour.</p>}
       <ul className="flex flex-col">
         {shown.map((y) => (
           <li key={y.id}>

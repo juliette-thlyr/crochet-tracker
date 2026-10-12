@@ -52,3 +52,12 @@ test('a picked yarn can be skipped again', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Skip Pink' }));
   expect(screen.getByRole('button', { name: 'Choose yarn for Pink' })).toBeInTheDocument();
 });
+
+test('a line colour with no stash yarn can be switched away from', async () => {
+  renderPage();
+  await userEvent.click(screen.getByRole('button', { name: 'Choose yarn for White' }));
+  expect(screen.getByText('No yarn in this colour. Tap the dot again to see every colour.')).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('radio', { name: 'White' }));
+  expect(screen.getByRole('button', { name: /Honey Bunny/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Paris/ })).toBeInTheDocument();
+});
