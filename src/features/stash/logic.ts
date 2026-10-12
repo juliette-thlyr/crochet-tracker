@@ -1,4 +1,5 @@
 import { stockBadge } from '../../lib/calc';
+import type { ColourFamily } from '../../lib/colours';
 import type { ProjectStatus, YarnWeight } from '../../lib/labels';
 import type { Tables } from '../../lib/supabase';
 
@@ -7,13 +8,16 @@ export type YarnWithStock = Yarn & { owned: number; used: number; reserved: numb
 
 export function filterYarns(
   yarns: YarnWithStock[],
-  f: { weight: YarnWeight | 'all'; fiber: string | 'all'; lowOnly: boolean },
+  f: { weight: YarnWeight | 'all'; fiber: string | 'all'; lowOnly: boolean; search: string; family: ColourFamily | 'all' },
 ): YarnWithStock[] {
+  const q = f.search.trim().toLowerCase();
   return yarns.filter(
     (y) =>
       (f.weight === 'all' || y.yarn_weight === f.weight) &&
       (f.fiber === 'all' || y.fiber === f.fiber) &&
-      (!f.lowOnly || stockBadge(y.free) !== null),
+      (!f.lowOnly || stockBadge(y.free) !== null) &&
+      (f.family === 'all' || y.color_family === f.family) &&
+      (q === '' || [y.name, y.brand, y.color].some((s) => s?.toLowerCase().includes(q))),
   );
 }
 

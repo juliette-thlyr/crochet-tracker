@@ -9,8 +9,8 @@ const base = {
   bought_on: null, notes: null, created_at: '', updated_at: '', used: 0, reserved: 0,
 };
 const data: YarnWithStock[] = [
-  { ...base, id: 'a', name: 'Fern green', yarn_weight: 'dk', fiber: 'Cotton', skeins_owned: 3, owned: 3, free: 1 },
-  { ...base, id: 'b', name: 'Rust', yarn_weight: 'worsted', fiber: 'Merino', skeins_owned: 2, owned: 2, free: 0.6 },
+  { ...base, id: 'a', name: 'Fern green', color_family: 'green', yarn_weight: 'dk', fiber: 'Cotton', skeins_owned: 3, owned: 3, free: 1 },
+  { ...base, id: 'b', name: 'Rust', color_family: 'orange', yarn_weight: 'worsted', fiber: 'Merino', skeins_owned: 2, owned: 2, free: 0.6 },
   { ...base, id: 'c', name: 'Charcoal', yarn_weight: 'worsted', fiber: 'Merino', skeins_owned: 1, owned: 1, free: 0 },
 ];
 vi.mock('./api', () => ({ useYarns: () => ({ data, isPending: false, error: null, refetch: vi.fn() }) }));
@@ -31,4 +31,16 @@ test('filters by weight and low stock', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Low' }));
   expect(screen.queryByRole('link', { name: /Fern green/ })).toBeNull();
   expect(screen.getByRole('link', { name: /Rust/ })).toBeInTheDocument();
+});
+
+test('search box and colour dots narrow the list', async () => {
+  renderWithProviders(<StashList />);
+  expect(screen.getAllByRole('radio').map((r) => r.getAttribute('aria-label'))).toEqual(['Orange', 'Green']);
+  await userEvent.click(screen.getByRole('radio', { name: 'Green' }));
+  expect(screen.queryByRole('link', { name: /Rust/ })).toBeNull();
+  expect(screen.getByRole('link', { name: /Fern green/ })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole('radio', { name: 'Green' }));
+  await userEvent.type(screen.getByLabelText('Search yarns'), 'char');
+  expect(screen.getAllByRole('link', { name: /sk free/ })).toHaveLength(1);
+  expect(screen.getByRole('link', { name: /Charcoal/ })).toBeInTheDocument();
 });

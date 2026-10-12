@@ -7,17 +7,27 @@ const yarn = (over: Partial<YarnWithStock>): YarnWithStock => ({
 });
 
 const yarns = [
-  yarn({ id: 'a', yarn_weight: 'dk', fiber: 'Cotton', free: 3 }),
-  yarn({ id: 'b', yarn_weight: 'worsted', fiber: 'Merino', free: 0.6 }),
-  yarn({ id: 'c', yarn_weight: 'dk', fiber: 'Merino', free: 0 }),
+  yarn({ id: 'a', name: 'Honey Bunny', brand: 'Hobbii', color: 'Teal', color_family: 'blue', yarn_weight: 'dk', fiber: 'Cotton', free: 3 }),
+  yarn({ id: 'b', name: 'Toucan', brand: 'Hobbii', color: 'Sage', color_family: 'green', yarn_weight: 'worsted', fiber: 'Merino', free: 0.6 }),
+  yarn({ id: 'c', name: 'Paris', brand: 'Drops', color: 'Mint green', yarn_weight: 'dk', fiber: 'Merino', free: 0 }),
 ];
+const none = { weight: 'all', fiber: 'all', lowOnly: false, search: '', family: 'all' } as const;
 
 test('filterYarns by weight, fiber and low stock', () => {
-  const ids = (f: Parameters<typeof filterYarns>[1]) => filterYarns(yarns, f).map((y) => y.id);
-  expect(ids({ weight: 'all', fiber: 'all', lowOnly: false })).toEqual(['a', 'b', 'c']);
-  expect(ids({ weight: 'dk', fiber: 'all', lowOnly: false })).toEqual(['a', 'c']);
-  expect(ids({ weight: 'all', fiber: 'Merino', lowOnly: false })).toEqual(['b', 'c']);
-  expect(ids({ weight: 'all', fiber: 'all', lowOnly: true })).toEqual(['b', 'c']);
+  const ids = (f: Partial<Parameters<typeof filterYarns>[1]>) => filterYarns(yarns, { ...none, ...f }).map((y) => y.id);
+  expect(ids({})).toEqual(['a', 'b', 'c']);
+  expect(ids({ weight: 'dk' })).toEqual(['a', 'c']);
+  expect(ids({ fiber: 'Merino' })).toEqual(['b', 'c']);
+  expect(ids({ lowOnly: true })).toEqual(['b', 'c']);
+});
+
+test('filterYarns searches name, brand and colour, ignoring case, and filters by colour family', () => {
+  const ids = (f: Partial<Parameters<typeof filterYarns>[1]>) => filterYarns(yarns, { ...none, ...f }).map((y) => y.id);
+  expect(ids({ search: 'bunny' })).toEqual(['a']);
+  expect(ids({ search: 'HOBBII' })).toEqual(['a', 'b']);
+  expect(ids({ search: ' green ' })).toEqual(['c']);
+  expect(ids({ family: 'green' })).toEqual(['b']);
+  expect(ids({ family: 'green', search: 'paris' })).toEqual([]);
 });
 
 test('mergeYarnUsage combines planned and used per project', () => {

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import ColourDots from '../../components/ColourDots';
 import ErrorBox from '../../components/ErrorBox';
 import { formatSkeins, stockBadge } from '../../lib/calc';
+import { COLOUR_FAMILIES, colourHex, colourLabel, type ColourFamily } from '../../lib/colours';
 import { WEIGHTS, weightLabel, type YarnWeight } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useYarns } from './api';
@@ -16,13 +18,16 @@ export default function StashList() {
   const [weight, setWeight] = useState<YarnWeight | 'all'>('all');
   const [fiber, setFiber] = useState<string>('all');
   const [lowOnly, setLowOnly] = useState(false);
+  const [search, setSearch] = useState('');
+  const [family, setFamily] = useState<ColourFamily | 'all'>('all');
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
   if (isPending) return <p className="p-4 text-muted">Loading…</p>;
 
   const weights = WEIGHTS.filter((w) => data.some((y) => y.yarn_weight === w.value));
   const fibers = [...new Set(data.map((y) => y.fiber).filter((f): f is string => !!f))].sort();
-  const shown = filterYarns(data, { weight, fiber, lowOnly });
+  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => data.some((y) => y.color_family === f));
+  const shown = filterYarns(data, { weight, fiber, lowOnly, search, family });
 
   return (
     <div className="flex flex-col gap-3 p-4">
@@ -33,6 +38,12 @@ export default function StashList() {
           <Link to="/stash/new" className="flex h-11 items-center rounded-full bg-stash px-5 text-white">+ Yarn</Link>
         </span>
       </header>
+      <input type="search" aria-label="Search yarns" placeholder="Search name, brand or colour" value={search}
+        onChange={(e) => setSearch(e.target.value)} className="h-12 rounded-full border border-line bg-surface px-4" />
+      {families.length > 0 && (
+        <ColourDots label="Colour" value={family === 'all' ? null : family} families={families}
+          onChange={(v) => setFamily(v ?? 'all')} />
+      )}
       <div className="flex gap-2 overflow-x-auto">
         <button type="button" className={chip(weight === 'all')} onClick={() => setWeight('all')}>All weights</button>
         {weights.map((w) => (
@@ -79,7 +90,13 @@ function YarnCard({ yarn }: { yarn: YarnWithStock }) {
         )}
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
-        <span className="text-base text-stash">{yarn.name}</span>
+        <span className="flex items-center gap-1.5 text-base text-stash">
+          {yarn.color_family && (
+            <span title={colourLabel(yarn.color_family)} className="h-3 w-3 shrink-0 rounded-full border border-line"
+              style={{ background: colourHex(yarn.color_family) }} />
+          )}
+          {yarn.name}
+        </span>
         <span className="text-xs text-muted">{[yarn.brand, weightLabel(yarn.yarn_weight)].filter(Boolean).join(' · ')}</span>
         <span className="mt-1 text-sm">{formatSkeins(yarn.free)} free <span className="text-muted">/ {formatSkeins(yarn.owned)}</span></span>
       </div>
