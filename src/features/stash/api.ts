@@ -61,7 +61,7 @@ export function useYarnUsage(id: string) {
 
 export function toYarnInput(y: YarnWithStock): YarnInput {
   return {
-    id: y.id, brand: y.brand, name: y.name, color: y.color, yarn_weight: y.yarn_weight, fiber: y.fiber,
+    id: y.id, brand: y.brand, name: y.name, color: y.color, color_family: y.color_family, yarn_weight: y.yarn_weight, fiber: y.fiber,
     skeins_owned: Number(y.skeins_owned), photo_path: y.photo_path, bought_at: y.bought_at,
     price_per_skein: y.price_per_skein, bought_on: y.bought_on, notes: y.notes,
   };

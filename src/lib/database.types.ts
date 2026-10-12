@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "part_instructions": {
+            "catalog_yarns": {
+                  Row: {
+                    "brand": string,"created_at": string,"fiber": string | null,"id": string,"name": string,"updated_at": string,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
+                  }
+                  Insert: {
+                    "brand": string,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name": string,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                  }
+                  Update: {
+                    "brand"?: string,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name"?: string,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"fibers": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"part_instructions": {
                   Row: {
                     "created_at": string,"id": string,"image_path": string,"kind": string,"pattern_part_id": string,"pdf_page": number | null,"position": number,"updated_at": string,"user_id": string
                   }
@@ -57,13 +83,13 @@ isOneToOne: false
                   ]
                 },"parts": {
                   Row: {
-                    "created_at": string,"current_row": number | null,"done": boolean,"id": string,"name": string,"notes": string | null,"pattern_part_id": string | null,"position": number,"project_id": string,"resume_note": string | null,"total_rows": number | null,"updated_at": string,"user_id": string
+                    "created_at": string,"current_row": number | null,"done": boolean,"from_pattern": boolean,"id": string,"name": string,"notes": string | null,"pattern_part_id": string | null,"position": number,"project_id": string,"resume_note": string | null,"total_rows": number | null,"updated_at": string,"user_id": string
                   }
                   Insert: {
-                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name": string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id": string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"from_pattern"?: boolean,"id"?: string,"name": string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id": string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"id"?: string,"name"?: string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id"?: string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"current_row"?: number | null,"done"?: boolean,"from_pattern"?: boolean,"id"?: string,"name"?: string,"notes"?: string | null,"pattern_part_id"?: string | null,"position"?: number,"project_id"?: string,"resume_note"?: string | null,"total_rows"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -83,6 +109,31 @@ isOneToOne: false
       columns: ["project_id"]
 isOneToOne: false
       referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"pattern_materials": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"pattern_id": string,"position": number,"quantity": number | null,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"pattern_id": string,"position"?: number,"quantity"?: number | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"pattern_id"?: string,"position"?: number,"quantity"?: number | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pattern_materials_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "pattern_stats"
+      referencedColumns: ["pattern_id"]
+    },{
+      foreignKeyName: "pattern_materials_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "patterns"
       referencedColumns: ["id"]
     }
                   ]
@@ -123,6 +174,31 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"pattern_yarns": {
+                  Row: {
+                    "color": string,"color_family": Database["public"]['Enums']["colour_family"] | null,"created_at": string,"id": string,"pattern_id": string,"position": number,"skeins": number | null,"updated_at": string,"user_id": string,"yarn_type": string | null
+                  }
+                  Insert: {
+                    "color": string,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"id"?: string,"pattern_id": string,"position"?: number,"skeins"?: number | null,"updated_at"?: string,"user_id"?: string,"yarn_type"?: string | null
+                  }
+                  Update: {
+                    "color"?: string,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"id"?: string,"pattern_id"?: string,"position"?: number,"skeins"?: number | null,"updated_at"?: string,"user_id"?: string,"yarn_type"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "pattern_yarns_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "pattern_stats"
+      referencedColumns: ["pattern_id"]
+    },{
+      foreignKeyName: "pattern_yarns_pattern_id_fkey"
+      columns: ["pattern_id"]
+isOneToOne: false
+      referencedRelation: "patterns"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"patterns": {
                   Row: {
@@ -230,6 +306,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"shops": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"updated_at": string,"user_id": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"name": string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"time_sessions": {
                   Row: {
                     "created_at": string,"ended_at": string | null,"id": string,"part_id": string,"started_at": string,"updated_at": string,"user_id": string
@@ -251,13 +340,13 @@ isOneToOne: false
                   ]
                 },"yarns": {
                   Row: {
-                    "bought_at": string | null,"bought_on": string | null,"brand": string | null,"color": string | null,"created_at": string,"fiber": string | null,"id": string,"name": string,"notes": string | null,"photo_path": string | null,"price_per_skein": number | null,"skeins_owned": number,"updated_at": string,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at": string | null,"bought_on": string | null,"brand": string | null,"color": string | null,"color_family": Database["public"]['Enums']["colour_family"] | null,"created_at": string,"fiber": string | null,"id": string,"name": string,"notes": string | null,"photo_path": string | null,"price_per_skein": number | null,"skeins_owned": number,"updated_at": string,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Insert: {
-                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name": string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name": string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Update: {
-                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name"?: string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name"?: string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Relationships: [
                     
@@ -298,11 +387,17 @@ isOneToOne: false
             "add_skeins":
 { Args: { "p_amount": number,"p_yarn_id": string }; Returns: undefined
                            },
+"apply_pattern_update":
+{ Args: { "p_changes": Json,"p_project_id": string }; Returns: undefined
+                           },
 "backfill_part_links":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"import_lists":
+{ Args: { "p_fibers"?: Json,"p_shops"?: Json,"p_yarns"?: Json }; Returns: Json
+                           },
 "start_project_from_pattern":
-{ Args: { "p_pattern_id": string }; Returns: string
+{ Args: { "p_pattern_id": string,"p_plans"?: Json }; Returns: string
                            },
 "start_timer":
 { Args: { "p_part_id": string }; Returns: {
@@ -325,7 +420,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "project_status": "idea"|"in_progress"|"finished"|"frogged","yarn_weight": "lace"|"fingering"|"sport"|"dk"|"worsted"|"aran"|"bulky"|"super_bulky"|"jumbo"
+            "colour_family": "red"|"pink"|"orange"|"yellow"|"green"|"blue"|"purple"|"brown"|"grey"|"black"|"white"|"multicolour","project_status": "idea"|"in_progress"|"finished"|"frogged","yarn_weight": "lace"|"fingering"|"sport"|"dk"|"worsted"|"aran"|"bulky"|"super_bulky"|"jumbo"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -441,7 +536,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "project_status": ["idea", "in_progress", "finished", "frogged"],"yarn_weight": ["lace", "fingering", "sport", "dk", "worsted", "aran", "bulky", "super_bulky", "jumbo"]
+            "colour_family": ["red", "pink", "orange", "yellow", "green", "blue", "purple", "brown", "grey", "black", "white", "multicolour"],"project_status": ["idea", "in_progress", "finished", "frogged"],"yarn_weight": ["lace", "fingering", "sport", "dk", "worsted", "aran", "bulky", "super_bulky", "jumbo"]
           }
         }
 } as const

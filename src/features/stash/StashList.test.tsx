@@ -5,7 +5,7 @@ import type { YarnWithStock } from './logic';
 import StashList from './StashList';
 
 const base = {
-  user_id: 'u', brand: 'Drops', color: null, photo_path: null, bought_at: null, price_per_skein: null,
+  user_id: 'u', brand: 'Drops', color: null, color_family: null, photo_path: null, bought_at: null, price_per_skein: null,
   bought_on: null, notes: null, created_at: '', updated_at: '', used: 0, reserved: 0,
 };
 const data: YarnWithStock[] = [

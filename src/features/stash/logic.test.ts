@@ -1,7 +1,7 @@
 import { filterYarns, mergeYarnUsage, type YarnWithStock } from './logic';
 
 const yarn = (over: Partial<YarnWithStock>): YarnWithStock => ({
-  id: 'y', user_id: 'u', brand: null, name: 'Y', color: null, yarn_weight: null, fiber: null,
+  id: 'y', user_id: 'u', brand: null, name: 'Y', color: null, color_family: null, yarn_weight: null, fiber: null,
   skeins_owned: 1, photo_path: null, bought_at: null, price_per_skein: null, bought_on: null, notes: null,
   created_at: '', updated_at: '', owned: 1, used: 0, reserved: 0, free: 1, ...over,
 });

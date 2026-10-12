@@ -9,7 +9,7 @@ import { toYarnInput, useSaveYarn, useYarn, type YarnInput } from './api';
 import NumberField from '../../components/NumberField';
 
 const empty: YarnInput = {
-  brand: null, name: '', color: null, yarn_weight: null, fiber: null, skeins_owned: 1, photo_path: null,
+  brand: null, name: '', color: null, color_family: null, yarn_weight: null, fiber: null, skeins_owned: 1, photo_path: null,
   bought_at: null, price_per_skein: null, bought_on: null, notes: null,
 };
 
