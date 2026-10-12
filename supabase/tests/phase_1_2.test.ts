@@ -58,6 +58,23 @@ describe('lists', () => {
     const fibers = await u.client.from('fibers').select('name').order('name');
     expect(fibers.data!.map((f) => f.name)).toEqual(['Coton', 'Coton bio', 'Polyester', 'Soie']);
   });
+
+  test('editing a yarn does not bring back removed list entries', async () => {
+    const y = await yarn({ name: 'Linen', bought_at: 'Laine Shop', fiber: 'Lin' });
+    await u.client.from('shops').delete().ilike('name', 'Laine Shop');
+    await u.client.from('fibers').delete().ilike('name', 'Lin');
+    const { error } = await u.client.from('yarns').update({
+      name: y.name, brand: y.brand, yarn_weight: y.yarn_weight, fiber: y.fiber, bought_at: y.bought_at, notes: 'x',
+    }).eq('id', y.id);
+    expect(error).toBeNull();
+    const shops = await u.client.from('shops').select('name');
+    expect(shops.data!.map((s) => s.name)).not.toContain('Laine Shop');
+    const fibers = await u.client.from('fibers').select('name');
+    expect(fibers.data!.map((f) => f.name)).not.toContain('Lin');
+    await u.client.from('yarns').update({ bought_at: 'Other Shop' }).eq('id', y.id);
+    const after = await u.client.from('shops').select('name');
+    expect(after.data!.map((s) => s.name)).toContain('Other Shop');
+  });
 });
 
 async function patternWithParts(parts: { name: string; count: number; total_rows?: number }[]) {
