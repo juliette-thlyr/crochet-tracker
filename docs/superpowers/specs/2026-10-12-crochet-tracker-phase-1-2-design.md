@@ -94,7 +94,7 @@ Unique per user on `(lower(brand), lower(name))`.
 ### Yarn form
 - **Brand**: text field with suggestions from `catalog_yarns` brands (case-insensitive "contains" match, max 8 shown).
 - **Name**: text field with suggestions from `catalog_yarns` names of the typed brand (all names when Brand is empty). Picking a suggestion fills Weight and Fiber from the list entry, only when those fields are empty.
-- **Colour** stays a free text field; next to it, **Colour family**: twelve dots with a "none" option.
+- **Colour** stays a free text field; under it, **Colour family**: a scrollable row of twelve dots; tapping the chosen dot again clears it (no family).
 - **Fiber**: dropdown of the user's fibers (alphabetical) plus "Other…"; Other shows a text field. The yarn's current fiber is always present even if it was removed from the list.
 - **Shop** (`bought_at`): text field with suggestions from `shops`.
 - Suggestions use a lightweight list under the field (not the native `datalist`, which iOS Safari shows poorly); each suggestion is a ≥ 44px tap target.
