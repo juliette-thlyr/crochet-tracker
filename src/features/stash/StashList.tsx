@@ -28,7 +28,10 @@ export default function StashList() {
     <div className="flex flex-col gap-3 p-4">
       <header className="flex items-center justify-between pt-2">
         <PageTitle color="text-stash">Stash</PageTitle>
-        <Link to="/stash/new" className="flex h-11 items-center rounded-full bg-stash px-5 text-white">+ Yarn</Link>
+        <span className="flex items-center gap-2">
+          <Link to="/stash/lists" className="flex h-11 items-center px-2 text-stash">Manage lists</Link>
+          <Link to="/stash/new" className="flex h-11 items-center rounded-full bg-stash px-5 text-white">+ Yarn</Link>
+        </span>
       </header>
       <div className="flex gap-2 overflow-x-auto">
         <button type="button" className={chip(weight === 'all')} onClick={() => setWeight('all')}>All weights</button>

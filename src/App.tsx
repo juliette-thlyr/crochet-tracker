@@ -12,6 +12,7 @@ import NewProject from './features/projects/NewProject';
 import ProjectList from './features/projects/ProjectList';
 import ProjectPage from './features/projects/ProjectPage';
 import TimerTab from './features/timer/TimerTab';
+import ManageListsPage from './features/lists/ManageListsPage';
 import StashList from './features/stash/StashList';
 import YarnForm from './features/stash/YarnForm';
 import YarnPage from './features/stash/YarnPage';
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="timer" element={<TimerTab />} />
         <Route path="stash" element={<StashList />} />
         <Route path="stash/new" element={<YarnForm />} />
+        <Route path="stash/lists" element={<ManageListsPage />} />
         <Route path="stash/:id" element={<YarnPage />} />
         <Route path="stash/:id/edit" element={<YarnForm />} />
       </Route>
