@@ -72,3 +72,12 @@ test('fiber "Other…" saves a new fiber; colour family and shop are saved', asy
     expect.anything(),
   );
 });
+
+test('a typed fiber is saved with the spelling of the list', async () => {
+  renderNew();
+  await userEvent.type(screen.getByLabelText('Name'), 'Rose');
+  await userEvent.selectOptions(screen.getByLabelText('Fiber'), 'Other…');
+  await userEvent.type(screen.getByLabelText('New fiber'), 'polyester');
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(save).toHaveBeenCalledWith(expect.objectContaining({ fiber: 'Polyester' }), expect.anything());
+});

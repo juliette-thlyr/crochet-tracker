@@ -71,7 +71,9 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
         return;
       }
     }
-    save.mutate({ ...y, fiber: y.fiber?.trim() || null, photo_path }, { onSuccess: (newId) => navigate(`/stash/${newId}`) });
+    const fiber = y.fiber?.trim() || null;
+    const listed = fiber && fiberList.find((f) => same(f.name, fiber))?.name;
+    save.mutate({ ...y, fiber: listed ?? fiber, photo_path }, { onSuccess: (newId) => navigate(`/stash/${newId}`) });
   }
 
   return (

@@ -155,8 +155,10 @@ async function syncRows(table: RowTable, patternId: string, rows: { id?: string 
 export function useSavePattern() {
   const invalidate = useInvalidateAll();
   return useMutation({
-    mutationFn: async ({ pattern, parts, yarnLines, materials }: {
+    mutationFn: async ({ pattern, parts, yarnLines, materials, onCreated }: {
       pattern: PatternInput; parts: PartDraft[]; yarnLines: YarnLineDraft[]; materials: MaterialDraft[];
+      /** Called right after a new pattern row is inserted, so a retry after a later failure updates it. */
+      onCreated?: (id: string) => void;
     }): Promise<string> => {
       const { id, ...fields } = pattern;
       const saved = id
@@ -164,6 +166,7 @@ export function useSavePattern() {
         : await supabase.from('patterns').insert(fields).select('id').single();
       if (saved.error) throw saved.error;
       const patternId = saved.data.id;
+      if (!id) onCreated?.(patternId);
       // Kept parts are updated in place so their instructions survive; projects copied from them are unaffected.
       const old = await supabase.from('pattern_parts').select('id').eq('pattern_id', patternId);
       if (old.error) throw old.error;

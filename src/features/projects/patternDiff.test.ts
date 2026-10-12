@@ -46,7 +46,7 @@ test('a renamed pattern part renames its project parts; parts with work are not 
 
 test('changed rows are listed', () => {
   expect(diffProjectWithPattern([part('a', 'Head', 0, 'H', { total_rows: 24 })], [pp('H', 'Head', 1, 0, 28)])).toEqual([
-    { key: 'rows:a', kind: 'rows', partId: 'a', name: 'Head', from: 24, to: 28 },
+    { key: 'rows:a', kind: 'rows', partId: 'a', name: 'Head', from: 24, to: 28, defaultOn: true },
   ]);
 });
 
@@ -79,4 +79,10 @@ test('toRpcChanges sends the ticked changes in the database shape', () => {
     { kind: 'delete', part_id: 'h' },
   ]);
   expect(toRpcChanges(changes, new Set())).toEqual([]);
+});
+
+test('a pattern part without a total proposes clearing rows, unticked by default', () => {
+  const changes = diffProjectWithPattern([part('a', 'Head', 0, 'H', { total_rows: 40 })], [pp('H', 'Head', 1, 0, null)]);
+  expect(changes).toEqual([{ key: 'rows:a', kind: 'rows', partId: 'a', name: 'Head', from: 40, to: null, defaultOn: false }]);
+  expect(defaultTicks(changes).has('rows:a')).toBe(false);
 });

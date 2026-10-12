@@ -38,3 +38,21 @@ test('adds a yarn line with colour, family, skeins and type, and a material', as
   await userEvent.click(screen.getByRole('button', { name: 'Remove material' }));
   expect(latest).toEqual({ yarnLines: [], materials: [] });
 });
+
+test('a yarn line with skeins needs a colour, an empty one does not', async () => {
+  render(<Harness />);
+  await userEvent.click(screen.getByRole('button', { name: '+ Yarn' }));
+  expect(screen.getByLabelText('Colour')).not.toBeRequired();
+  await userEvent.type(screen.getByLabelText('Skeins'), '2');
+  await userEvent.tab();
+  expect(screen.getByLabelText('Colour')).toBeRequired();
+});
+
+test('a material with a quantity needs a name', async () => {
+  render(<Harness />);
+  await userEvent.click(screen.getByRole('button', { name: '+ Material' }));
+  expect(screen.getByLabelText('Material')).not.toBeRequired();
+  await userEvent.type(screen.getByLabelText('Quantity'), '2');
+  await userEvent.tab();
+  expect(screen.getByLabelText('Material')).toBeRequired();
+});

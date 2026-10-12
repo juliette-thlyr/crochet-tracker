@@ -33,19 +33,22 @@ export default function ManageListsPage() {
             <input autoFocus aria-label={`New name for ${target.label}`} value={editing.value}
               onChange={(e) => setEditing({ ...editing, value: e.target.value })}
               className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-2.5" />
-            <button type="button" className="h-11 px-2 text-stash"
+            <button type="button" className="h-11 px-2 text-stash disabled:opacity-50"
+              disabled={rename.isPending || !editing.value.trim()}
               onClick={() => {
                 if (editing.value.trim()) {
                   rename.mutate({ table: target.table, id: target.id, patch: { name: editing.value } },
                     { onSuccess: () => setEditing(null) });
                 }
               }}>Save</button>
+            <button type="button" className="h-11 px-2 text-muted"
+              onClick={() => { setEditing(null); rename.reset(); }}>Cancel</button>
           </>
         ) : (
           <>
             <span className="flex-1">{text}</span>
             <button type="button" aria-label={`Rename ${target.label}`} className="h-11 px-2 text-sm text-stash"
-              onClick={() => setEditing({ ...target, value: target.label })}>Rename</button>
+              onClick={() => { rename.reset(); setEditing({ ...target, value: target.label }); }}>Rename</button>
             <button type="button" aria-label={`Remove ${target.label}`} className="h-11 w-11 text-muted"
               onClick={() => setRemoving(target)}>×</button>
           </>

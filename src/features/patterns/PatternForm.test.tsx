@@ -46,7 +46,7 @@ test('saves the pattern with type, recommended hook and parts', async () => {
         { name: 'Head', count: 1, total_rows: 24 },
         { name: 'Leg', count: 2, total_rows: null },
       ],
-      yarnLines: [], materials: [],
+      yarnLines: [], materials: [], onCreated: expect.any(Function),
     },
     expect.anything(),
   );
@@ -147,4 +147,14 @@ test('clearing the name of a kept part blocks saving', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Save' }));
   expect(screen.getByRole('alert')).toHaveTextContent('Give every part a name');
   expect(save).not.toHaveBeenCalled();
+});
+
+test('after a new pattern was created, saving again updates it instead of inserting a duplicate', async () => {
+  save.mockImplementationOnce((vars: { onCreated?: (id: string) => void }) => vars.onCreated?.('p-new'));
+  renderWithProviders(<PatternForm />, { route: '/patterns/new', path: '/patterns/new' });
+  await userEvent.type(screen.getByLabelText('Name'), 'Bunny');
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(save.mock.calls[1][0]).toEqual(expect.objectContaining({ pattern: expect.objectContaining({ id: 'p-new' }) }));
 });

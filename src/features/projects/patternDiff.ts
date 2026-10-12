@@ -6,7 +6,7 @@ export type DiffPatternPart = { id: string; name: string; count: number; total_r
 export type PatternChange =
   | { key: string; kind: 'add'; patternPartId: string; name: string; totalRows: number | null; afterPartId: string | null }
   | { key: string; kind: 'rename'; partId: string; from: string; to: string; defaultOn: boolean }
-  | { key: string; kind: 'rows'; partId: string; name: string; from: number | null; to: number | null }
+  | { key: string; kind: 'rows'; partId: string; name: string; from: number | null; to: number | null; defaultOn: boolean }
   | { key: string; kind: 'removed'; partId: string; name: string };
 
 /** The project name of copy i (0-based) of a pattern part: the name alone when count is 1, else "Name i+1". */
@@ -23,7 +23,7 @@ export function diffProjectWithPattern(parts: DiffPart[], patternParts: DiffPatt
     linked.slice(0, pp.count).forEach((part, i) => {
       const to = copyName(pp, i);
       if (part.name !== to) changes.push({ key: `rename:${part.id}`, kind: 'rename', partId: part.id, from: part.name, to, defaultOn: !part.hasWork });
-      if (part.total_rows !== pp.total_rows) changes.push({ key: `rows:${part.id}`, kind: 'rows', partId: part.id, name: part.name, from: part.total_rows, to: pp.total_rows });
+      if (part.total_rows !== pp.total_rows) changes.push({ key: `rows:${part.id}`, kind: 'rows', partId: part.id, name: part.name, from: part.total_rows, to: pp.total_rows, defaultOn: pp.total_rows !== null });
     });
     const last = linked.length > 0 ? linked[Math.min(linked.length, pp.count) - 1].id : null;
     for (let i = linked.length; i < pp.count; i++) {
@@ -42,9 +42,9 @@ export function diffProjectWithPattern(parts: DiffPart[], patternParts: DiffPatt
   return changes;
 }
 
-/** Ticked by default: additions, row changes and renames of untouched parts. Removals default to "keep". */
+/** Ticked by default: additions, row changes (when the pattern sets a total) and renames of untouched parts. Removals default to "keep". */
 export function defaultTicks(changes: PatternChange[]): Set<string> {
-  return new Set(changes.filter((c) => (c.kind === 'rename' ? c.defaultOn : c.kind !== 'removed')).map((c) => c.key));
+  return new Set(changes.filter((c) => (c.kind === 'rename' || c.kind === 'rows' ? c.defaultOn : c.kind !== 'removed')).map((c) => c.key));
 }
 
 /** The ticked changes in the shape `apply_pattern_update` expects. */

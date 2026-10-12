@@ -28,6 +28,7 @@ export default function MaterialsSection({ yarnLines, onYarnLines, materials, on
         <div key={i} className="flex flex-col gap-1.5 rounded-2xl border border-line bg-surface p-2.5">
           <div className="flex items-center gap-1.5">
             <input aria-label="Colour" placeholder="Colour" value={line.color}
+              required={line.skeins !== null || line.yarn_type.trim() !== ''}
               onChange={(e) => setLine(i, { color: e.target.value })} className={`${field} min-w-0 flex-1 px-2.5`} />
             <NumberField aria-label="Skeins" value={line.skeins} min={0} step={0.25}
               onChange={(v) => setLine(i, { skeins: v })} className={`${field} w-16 text-center`} />
@@ -47,7 +48,7 @@ export default function MaterialsSection({ yarnLines, onYarnLines, materials, on
       {materials.map((m, i) => (
         <div key={i} className="flex items-end gap-1.5">
           <div className="min-w-0 flex-1">
-            <SuggestField label="Material" value={m.name} suggestions={materialNames}
+            <SuggestField label="Material" value={m.name} suggestions={materialNames} required={m.quantity !== null}
               onChange={(v) => setMaterial(i, { name: v })} />
           </div>
           <NumberField aria-label="Quantity" value={m.quantity} min={0}

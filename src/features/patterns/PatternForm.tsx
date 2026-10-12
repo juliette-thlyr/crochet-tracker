@@ -66,7 +66,7 @@ function PatternFormBody({ initial, initialParts, initialYarnLines, initialMater
   const [nameError, setNameError] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [newType, setNewType] = useState<string | null>(null);
-  const set = <K extends keyof PatternInput>(k: K, v: PatternInput[K]) => setP({ ...p, [k]: v });
+  const set = <K extends keyof PatternInput>(k: K, v: PatternInput[K]) => setP((cur) => ({ ...cur, [k]: v }));
   const setPart = (i: number, patch: Partial<PartDraft>) => setParts(parts.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 
   function pickPdf(file: File | null) {
@@ -110,7 +110,7 @@ function PatternFormBody({ initial, initialParts, initialYarnLines, initialMater
         return;
       }
     }
-    save.mutate({ pattern: { ...p, pdf_path, photo_path }, parts, yarnLines, materials }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
+    save.mutate({ pattern: { ...p, pdf_path, photo_path }, parts, yarnLines, materials, onCreated: (newId) => setP((cur) => ({ ...cur, id: newId })) }, { onSuccess: (newId) => navigate(`/patterns/${newId}`) });
   }
 
   return (

@@ -75,6 +75,22 @@ describe('lists', () => {
     const after = await u.client.from('shops').select('name');
     expect(after.data!.map((s) => s.name)).toContain('Other Shop');
   });
+
+  test('each list is fed only by its own column', async () => {
+    const y = await yarn({ brand: 'Katia', name: 'Big Ribbon', bought_at: 'Mercerie', fiber: 'Laine' });
+    await u.client.from('catalog_yarns').delete().ilike('name', 'Big Ribbon');
+    await u.client.from('shops').delete().ilike('name', 'Mercerie');
+    const { error } = await u.client.from('yarns').update({
+      name: y.name, brand: y.brand, yarn_weight: y.yarn_weight, fiber: 'Coton recyclé', bought_at: y.bought_at, notes: y.notes,
+    }).eq('id', y.id);
+    expect(error).toBeNull();
+    const fibers = await u.client.from('fibers').select('name');
+    expect(fibers.data!.map((f) => f.name)).toContain('Coton recyclé');
+    const cat = await u.client.from('catalog_yarns').select('name');
+    expect(cat.data!.map((c) => c.name)).not.toContain('Big Ribbon');
+    const shops = await u.client.from('shops').select('name');
+    expect(shops.data!.map((s) => s.name)).not.toContain('Mercerie');
+  });
 });
 
 async function patternWithParts(parts: { name: string; count: number; total_rows?: number }[]) {
