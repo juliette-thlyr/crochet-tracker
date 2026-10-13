@@ -42,3 +42,5 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 0 128 128">
 </svg>
 `;
 writeFileSync(new URL('../public/icons/icon.svg', import.meta.url), svg);
+// Same drawing built into the app bundle (src/components/Logo.tsx), so the logo never needs a separate download.
+writeFileSync(new URL('../src/assets/logo.svg', import.meta.url), svg);

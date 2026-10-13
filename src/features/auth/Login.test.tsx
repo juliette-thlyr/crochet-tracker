@@ -39,7 +39,7 @@ test('sends a magic link and asks for the code', async () => {
 
 test('shows the logo above the title', () => {
   const { container } = render(<Login />);
-  const logo = container.querySelector('img[src="/icons/icon.svg"]');
+  const logo = container.querySelector('img[src^="data:image/svg+xml"]');
   expect(logo).not.toBeNull();
   expect(logo!.compareDocumentPosition(screen.getByRole('heading', { name: 'Crochet Tracker' })))
     .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
