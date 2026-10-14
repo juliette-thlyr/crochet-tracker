@@ -13,7 +13,7 @@ const pattern = {
   ],
 };
 const yarn = (id: string, name: string, color_family: string | null, free: number) => ({
-  id, name, brand: 'Hobbii', color: null, color_family, yarn_weight: null, fiber: null, free, owned: free, used: 0, reserved: 0,
+  id, name, brand: 'Hobbii', color: null, color_families: color_family ? [color_family] : [], yarn_weight: null, fiber: null, free, owned: free, used: 0, reserved: 0,
 });
 vi.mock('../patterns/api', () => ({
   usePattern: () => ({ data: pattern, isPending: false, error: null }),

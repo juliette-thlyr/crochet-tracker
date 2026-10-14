@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import ColourSwatches from '../../components/ColourSwatches';
 import ErrorBox from '../../components/ErrorBox';
 import NumberField from '../../components/NumberField';
 import { formatEuros } from '../../lib/calc';
@@ -41,6 +42,12 @@ export default function YarnPage() {
       <div className="flex flex-col gap-3.5 p-4">
         <div>
           <h1 className="text-3xl text-stash">{yarn.name}</h1>
+          {(yarn.color || yarn.color_families.length > 0) && (
+            <p className="flex items-center gap-2 text-lg">
+              <ColourSwatches families={yarn.color_families} size="h-4 w-4" />
+              {yarn.color && <span>{yarn.color}</span>}
+            </p>
+          )}
           <p className="text-sm text-muted">{[yarn.brand, weightLabel(yarn.yarn_weight), yarn.fiber].filter(Boolean).join(' · ')}</p>
         </div>
         <div className="grid grid-cols-4 gap-1.5">

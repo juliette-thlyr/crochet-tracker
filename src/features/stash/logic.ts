@@ -16,7 +16,7 @@ export function filterYarns(
       (f.weight === 'all' || y.yarn_weight === f.weight) &&
       (f.fiber === 'all' || y.fiber === f.fiber) &&
       (!f.lowOnly || stockBadge(y.free) !== null) &&
-      (f.family === 'all' || y.color_family === f.family) &&
+      (f.family === 'all' || y.color_families.includes(f.family)) &&
       (q === '' || [y.name, y.brand, y.color].some((s) => s?.toLowerCase().includes(q))),
   );
 }

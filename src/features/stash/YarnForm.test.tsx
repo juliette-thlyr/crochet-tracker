@@ -63,12 +63,13 @@ test('fiber "Other…" saves a new fiber; colour family and shop are saved', asy
   await userEvent.type(screen.getByLabelText('Name'), 'Rose');
   await userEvent.selectOptions(screen.getByLabelText('Fiber'), 'Other…');
   await userEvent.type(screen.getByLabelText('New fiber'), 'Coton bio');
-  await userEvent.click(screen.getByRole('radio', { name: 'Pink' }));
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Pink' }));
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Purple' }));
   await userEvent.type(screen.getByLabelText('Shop'), 'Hob');
   await userEvent.click(screen.getByRole('option', { name: 'Hobbii' }));
   await userEvent.click(screen.getByRole('button', { name: 'Save' }));
   expect(save).toHaveBeenCalledWith(
-    expect.objectContaining({ name: 'Rose', fiber: 'Coton bio', color_family: 'pink', bought_at: 'Hobbii' }),
+    expect.objectContaining({ name: 'Rose', fiber: 'Coton bio', color_families: ['pink', 'purple'], bought_at: 'Hobbii' }),
     expect.anything(),
   );
 });

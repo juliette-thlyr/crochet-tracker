@@ -8,7 +8,7 @@ const addSkeins = vi.fn();
 vi.mock('./api', () => ({
   useYarn: () => ({
     data: {
-      id: 'y1', user_id: 'u', brand: 'Drops Paris', name: 'Fern green', color: 'green', yarn_weight: 'dk',
+      id: 'y1', user_id: 'u', brand: 'Drops Paris', name: 'Fern green', color: 'Sage', color_families: ['green', 'grey'], yarn_weight: 'dk',
       fiber: '100% cotton', skeins_owned: 3, photo_path: null, bought_at: 'Wool shop', price_per_skein: 4.5,
       bought_on: '2026-09-03', notes: null, created_at: '', updated_at: '', owned: 3, used: 1.1, reserved: 0.9, free: 1,
     },
@@ -47,4 +47,10 @@ test('+ Add skeins adds the typed amount without opening the form', async () => 
   await userEvent.type(amount, '2');
   await userEvent.click(screen.getByRole('button', { name: 'Add' }));
   expect(addSkeins).toHaveBeenCalledWith({ yarnId: 'y1', amount: 2 }, expect.anything());
+});
+
+test('shows the colour name with its colour dots', () => {
+  renderWithProviders(<YarnPage />, { route: '/stash/y1', path: '/stash/:id' });
+  const colour = screen.getByText('Sage');
+  expect(colour.parentElement).toContainElement(screen.getByTitle('Green + Grey'));
 });

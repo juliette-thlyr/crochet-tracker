@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import ColourDots from '../../components/ColourDots';
+import { MultiColourDots } from '../../components/ColourDots';
 import ErrorBox from '../../components/ErrorBox';
 import NumberField from '../../components/NumberField';
 import PhotoField from '../../components/PhotoField';
@@ -12,7 +12,7 @@ import { useCatalog, useFibers, useShops } from '../lists/api';
 import { toYarnInput, useSaveYarn, useYarn, type YarnInput } from './api';
 
 const empty: YarnInput = {
-  brand: null, name: '', color: null, color_family: null, yarn_weight: null, fiber: null, skeins_owned: 1, photo_path: null,
+  brand: null, name: '', color: null, color_families: [], yarn_weight: null, fiber: null, skeins_owned: 1, photo_path: null,
   bought_at: null, price_per_skein: null, bought_on: null, notes: null,
 };
 
@@ -89,8 +89,8 @@ function YarnFormBody({ initial }: { initial: YarnInput }) {
       <SuggestField label="Name" required value={y.name} onChange={(v) => set('name', v)} suggestions={names} onPick={pickName} />
       <label className={label}>Color<input className={input} value={y.color ?? ''} onChange={(e) => set('color', text(e.target.value))} /></label>
       <div className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Colour family</span>
-        <ColourDots label="Colour family" value={y.color_family} onChange={(v) => set('color_family', v)} />
+        <span className="text-sm text-muted">Colour family · up to 2</span>
+        <MultiColourDots label="Colour family" value={y.color_families} onChange={(v) => set('color_families', v)} />
       </div>
       <div className="flex gap-2">
         <label className={`${label} flex-1`}>Weight

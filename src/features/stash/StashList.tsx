@@ -3,7 +3,8 @@ import { Link } from 'react-router';
 import ColourDots from '../../components/ColourDots';
 import ErrorBox from '../../components/ErrorBox';
 import { formatSkeins, stockBadge } from '../../lib/calc';
-import { COLOUR_FAMILIES, colourHex, colourLabel, type ColourFamily } from '../../lib/colours';
+import ColourSwatches from '../../components/ColourSwatches';
+import { COLOUR_FAMILIES, type ColourFamily } from '../../lib/colours';
 import { WEIGHTS, weightLabel, type YarnWeight } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useYarns } from './api';
@@ -26,7 +27,7 @@ export default function StashList() {
 
   const weights = WEIGHTS.filter((w) => data.some((y) => y.yarn_weight === w.value));
   const fibers = [...new Set(data.map((y) => y.fiber).filter((f): f is string => !!f))].sort();
-  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => data.some((y) => y.color_family === f));
+  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => data.some((y) => y.color_families.includes(f)));
   const shown = filterYarns(data, { weight, fiber, lowOnly, search, family });
 
   return (
@@ -90,14 +91,11 @@ function YarnCard({ yarn }: { yarn: YarnWithStock }) {
         )}
       </div>
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
-        <span className="flex items-center gap-1.5 text-base text-stash">
-          {yarn.color_family && (
-            <span title={colourLabel(yarn.color_family)} className="h-3 w-3 shrink-0 rounded-full border border-line"
-              style={{ background: colourHex(yarn.color_family) }} />
-          )}
-          {yarn.name}
+        <span className="text-base text-stash">{yarn.name}</span>
+        <span className="flex items-center gap-1.5 text-xs text-muted">
+          <ColourSwatches families={yarn.color_families} />
+          {[yarn.color, yarn.brand, weightLabel(yarn.yarn_weight)].filter(Boolean).join(' · ')}
         </span>
-        <span className="text-xs text-muted">{[yarn.brand, weightLabel(yarn.yarn_weight)].filter(Boolean).join(' · ')}</span>
         <span className="mt-1 text-sm">{formatSkeins(yarn.free)} free <span className="text-muted">/ {formatSkeins(yarn.owned)}</span></span>
       </div>
     </Link>

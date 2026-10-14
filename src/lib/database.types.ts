@@ -340,13 +340,13 @@ isOneToOne: false
                   ]
                 },"yarns": {
                   Row: {
-                    "bought_at": string | null,"bought_on": string | null,"brand": string | null,"color": string | null,"color_family": Database["public"]['Enums']["colour_family"] | null,"created_at": string,"fiber": string | null,"id": string,"name": string,"notes": string | null,"photo_path": string | null,"price_per_skein": number | null,"skeins_owned": number,"updated_at": string,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at": string | null,"bought_on": string | null,"brand": string | null,"color": string | null,"color_families": (Database["public"]['Enums']["colour_family"])[],"created_at": string,"fiber": string | null,"id": string,"name": string,"notes": string | null,"photo_path": string | null,"price_per_skein": number | null,"skeins_owned": number,"updated_at": string,"user_id": string,"yarn_weight": Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Insert: {
-                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name": string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_families"?: (Database["public"]['Enums']["colour_family"])[],"created_at"?: string,"fiber"?: string | null,"id"?: string,"name": string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Update: {
-                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_family"?: Database["public"]['Enums']["colour_family"] | null,"created_at"?: string,"fiber"?: string | null,"id"?: string,"name"?: string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
+                    "bought_at"?: string | null,"bought_on"?: string | null,"brand"?: string | null,"color"?: string | null,"color_families"?: (Database["public"]['Enums']["colour_family"])[],"created_at"?: string,"fiber"?: string | null,"id"?: string,"name"?: string,"notes"?: string | null,"photo_path"?: string | null,"price_per_skein"?: number | null,"skeins_owned"?: number,"updated_at"?: string,"user_id"?: string,"yarn_weight"?: Database["public"]['Enums']["yarn_weight"] | null
                   }
                   Relationships: [
                     

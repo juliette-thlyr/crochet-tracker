@@ -43,7 +43,7 @@ test('lists → yarn with suggestions → stash search → pattern materials →
   await page.getByRole('option', { name: 'Honey Bunny' }).click();
   await expect(page.getByLabel('Weight')).toHaveValue('super_bulky');
   await expect(page.getByLabel('Fiber')).toHaveValue('Polyester');
-  await page.getByRole('radio', { name: 'Pink' }).click();
+  await page.getByRole('checkbox', { name: 'Pink' }).click();
   await page.getByLabel('Skeins owned').fill('3');
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('heading', { name: 'Honey Bunny' })).toBeVisible();

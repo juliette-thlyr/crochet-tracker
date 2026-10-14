@@ -10,7 +10,7 @@ type Props = { yarns: YarnWithStock[]; initialFamily: ColourFamily | null; onPic
 export default function YarnPicker({ yarns, initialFamily, onPick }: Props) {
   const [family, setFamily] = useState<ColourFamily | null>(initialFamily);
   const [search, setSearch] = useState('');
-  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => yarns.some((y) => y.color_family === f) || f === family);
+  const families = COLOUR_FAMILIES.map((c) => c.value).filter((f) => yarns.some((y) => y.color_families.includes(f)) || f === family);
   const shown = filterYarns(yarns, { weight: 'all', fiber: 'all', lowOnly: false, search, family: family ?? 'all' });
 
   return (
