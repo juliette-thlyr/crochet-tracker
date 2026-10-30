@@ -6,7 +6,7 @@ export default defineConfig({
   use: { ...devices['Pixel 7'], baseURL: 'http://localhost:7421' },
   webServer: {
     // "--mode test" makes Vite read .env.test, so the app talks to the local Supabase stack
-    command: 'npx vite --mode test --port 7421 --strictPort',
+    command: 'node scripts/copy-pdfjs-assets.mjs && npx vite --mode test --port 7421 --strictPort',
     url: 'http://localhost:7421',
     reuseExistingServer: false,
   },

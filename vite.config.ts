@@ -32,6 +32,8 @@ export default defineConfig({
       // so pages always come from the network first and the saved copy is only a fallback.
       workbox: {
         navigateFallback: null,
+        // pdf.js helper files are fetched only when converting PDF pages; keep them out of the install.
+        globIgnores: ['pdfjs/**'],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
