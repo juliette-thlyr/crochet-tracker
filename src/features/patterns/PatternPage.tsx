@@ -4,9 +4,9 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import ErrorBox from '../../components/ErrorBox';
 import { expandPatternParts, formatDuration, formatHook } from '../../lib/calc';
 import { weightLabel } from '../../lib/labels';
-import { useSignedUrl } from '../../lib/storage';
 import { useDeletePattern, usePattern, usePatternInstructionCounts, useStartProject } from './api';
 import MaterialsList from '../materials/MaterialsList';
+import PatternPdfLink from './PatternPdfLink';
 import PatternThumb from './PatternThumb';
 
 export default function PatternPage() {
@@ -17,7 +17,6 @@ export default function PatternPage() {
   const start = useStartProject();
   const del = useDeletePattern();
   const [confirming, setConfirming] = useState(false);
-  const pdfUrl = useSignedUrl('pattern-pdfs', p?.pdf_path ?? null);
 
   if (error) return <ErrorBox error={error} onRetry={() => refetch()} />;
   if (isPending) return <p className="p-4 text-muted">Loading…</p>;
@@ -49,14 +48,7 @@ export default function PatternPage() {
         ))}
       </div>
 
-      {pdfUrl && (
-        <a href={pdfUrl} target="_blank" rel="noreferrer"
-          className="flex items-center gap-3 rounded-2xl border border-line bg-surface px-3.5 py-3">
-          <span className="flex h-12 w-10 items-center justify-center rounded-md bg-patterns-soft text-xs text-patterns">PDF</span>
-          <span className="flex-1">Open pattern</span>
-          <span className="text-patterns">›</span>
-        </a>
-      )}
+      <PatternPdfLink path={p.pdf_path} label="Open pattern" />
 
       <h2 className="text-sm uppercase tracking-wide text-muted">Parts · {expandPatternParts(p.parts).length} when started</h2>
       <ul className="rounded-2xl border border-line bg-surface">

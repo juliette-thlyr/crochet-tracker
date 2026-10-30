@@ -1,13 +1,17 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import type { ColourFamily } from '../../lib/colours';
 import { useInvalidateAll } from '../../lib/invalidate';
 import { supabase } from '../../lib/supabase';
 import type { Part } from '../projects/api';
 
 export type Session = { id: string; started_at: string; ended_at: string | null };
 export type PartDetail = Part & {
-  project: { id: string; name: string };
+  project: { id: string; name: string; pattern: { pdf_path: string | null } | null };
   time_sessions: Session[];
-  part_yarns: { id: string; skeins_used: number; yarn: { id: string; name: string; brand: string | null } | null }[];
+  part_yarns: {
+    id: string; skeins_used: number;
+    yarn: { id: string; name: string; brand: string | null; color: string | null; color_families: ColourFamily[] } | null;
+  }[];
 };
 
 export function usePart(id: string) {
@@ -16,7 +20,7 @@ export function usePart(id: string) {
     queryFn: async (): Promise<PartDetail> => {
       const { data, error } = await supabase
         .from('parts')
-        .select('*, project:projects(id, name), time_sessions(id, started_at, ended_at), part_yarns(id, skeins_used, yarn:yarns(id, name, brand))')
+        .select('*, project:projects(id, name, pattern:patterns(pdf_path)), time_sessions(id, started_at, ended_at), part_yarns(id, skeins_used, yarn:yarns(id, name, brand, color, color_families))')
         .eq('id', id)
         .single();
       if (error) throw error;

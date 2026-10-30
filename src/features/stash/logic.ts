@@ -4,6 +4,11 @@ import type { ProjectStatus, YarnWeight } from '../../lib/labels';
 import type { Tables } from '../../lib/supabase';
 
 export type Yarn = Tables<'yarns'>;
+/** "Honey Bunny · Teal": a yarn's name followed by its colour, for lists and dropdowns. */
+export function yarnLabel(y: { name: string; color?: string | null }): string {
+  return y.color ? `${y.name} · ${y.color}` : y.name;
+}
+
 export type YarnWithStock = Yarn & { owned: number; used: number; reserved: number; free: number };
 
 export function filterYarns(

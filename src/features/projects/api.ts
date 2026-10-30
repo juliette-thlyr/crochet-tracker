@@ -2,20 +2,22 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { resizeImage } from '../../lib/images';
 import { useInvalidateAll } from '../../lib/invalidate';
 import { uploadFile } from '../../lib/storage';
+import type { ColourFamily } from '../../lib/colours';
 import { supabase, type Tables } from '../../lib/supabase';
 import type { Json } from '../../lib/database.types';
 
 export type Project = Tables<'projects'>;
+type YarnRef = { id: string; name: string; color: string | null; color_families: ColourFamily[] } | null;
 export type Part = Tables<'parts'>;
 export type ProjectPhoto = Tables<'project_photos'>;
 export type ProjectPart = Part & {
   time_sessions: { id: string; started_at: string; ended_at: string | null }[];
-  part_yarns: { id: string; skeins_used: number; yarn: { id: string; name: string } | null }[];
+  part_yarns: { id: string; skeins_used: number; yarn: YarnRef }[];
 };
 export type ProjectDetail = Project & {
-  pattern: { id: string; name: string; hook_size_mm: number | null } | null;
+  pattern: { id: string; name: string; hook_size_mm: number | null; pdf_path: string | null } | null;
   parts: ProjectPart[];
-  project_yarns: { id: string; skeins_planned: number; yarn: { id: string; name: string } | null }[];
+  project_yarns: { id: string; skeins_planned: number; yarn: YarnRef }[];
   project_photos: ProjectPhoto[];
 };
 export type ProjectListItem = Project & {
@@ -58,9 +60,9 @@ export function useProject(id: string) {
     queryFn: async (): Promise<ProjectDetail> => {
       const { data, error } = await supabase
         .from('projects')
-        .select(`*, pattern:patterns(id, name, hook_size_mm),
-          parts(*, time_sessions(id, started_at, ended_at), part_yarns(id, skeins_used, yarn:yarns(id, name))),
-          project_yarns(id, skeins_planned, yarn:yarns(id, name)),
+        .select(`*, pattern:patterns(id, name, hook_size_mm, pdf_path),
+          parts(*, time_sessions(id, started_at, ended_at), part_yarns(id, skeins_used, yarn:yarns(id, name, color, color_families))),
+          project_yarns(id, skeins_planned, yarn:yarns(id, name, color, color_families)),
           project_photos(*)`)
         .eq('id', id)
         .single();

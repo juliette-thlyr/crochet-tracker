@@ -6,6 +6,8 @@ import { formatDuration, formatSkeins, sessionSeconds, sumSeconds } from '../../
 import { useDeletePart, useUpdatePart } from '../projects/api';
 import { useYarns } from '../stash/api';
 import InstructionsSection from '../instructions/InstructionsSection';
+import PatternPdfLink from '../patterns/PatternPdfLink';
+import ColourSwatches from '../../components/ColourSwatches';
 import { useSetRow } from '../timer/api';
 import PartTimerButton from '../timer/PartTimerButton';
 import { useDeleteSession, usePart, useRemoveYarnUsage, useSaveSession, useSetYarnUsage, type Session } from './api';
@@ -93,6 +95,7 @@ export default function PartPage() {
         </label>
       </section>
       {part.pattern_part_id && <InstructionsSection patternPartId={part.pattern_part_id} />}
+      <PatternPdfLink path={part.project.pattern?.pdf_path} />
 
       <div className="flex items-center justify-between">
         <h2 className={h2}>Time · {formatDuration(sumSeconds(part.time_sessions, now))}</h2>
@@ -140,7 +143,10 @@ export default function PartPage() {
       )}
       {part.part_yarns.map((u) => (
         <div key={u.id} className="flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-3.5 py-2">
-          <span className="flex-1">{u.yarn?.name}{u.yarn?.brand && ` · ${u.yarn.brand}`}</span>
+          <span className="flex flex-1 items-center gap-1.5">
+            <ColourSwatches families={u.yarn?.color_families ?? []} />
+            {[u.yarn?.name, u.yarn?.color, u.yarn?.brand].filter(Boolean).join(' · ')}
+          </span>
           <span>{formatSkeins(Number(u.skeins_used))}</span>
           <button type="button" aria-label={`Remove ${u.yarn?.name}`} onClick={() => setConfirming({ kind: 'yarn', id: u.id, name: u.yarn?.name ?? 'yarn' })} className="h-11 w-11 text-muted">×</button>
         </div>

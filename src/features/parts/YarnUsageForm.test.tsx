@@ -12,3 +12,10 @@ test('picks a stash yarn and a number of skeins', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Save yarn' }));
   expect(onSave).toHaveBeenCalledWith({ yarnId: 'y1', skeins: 0.25 });
 });
+
+test('options show the yarn colour after its name', () => {
+  render(<YarnUsageForm yarns={[{ id: 'y1', name: 'Honey Bunny', color: 'Teal' }, { id: 'y2', name: 'Plain', color: null }]}
+    onSave={vi.fn()} onCancel={vi.fn()} />);
+  expect(screen.getByRole('option', { name: 'Honey Bunny · Teal' })).toBeInTheDocument();
+  expect(screen.getByRole('option', { name: 'Plain' })).toBeInTheDocument();
+});

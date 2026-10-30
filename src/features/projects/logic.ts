@@ -1,3 +1,4 @@
+import type { ColourFamily } from '../../lib/colours';
 import type { ProjectStatus } from '../../lib/labels';
 
 export const STATUS_ORDER: ProjectStatus[] = ['in_progress', 'idea', 'finished', 'frogged'];
@@ -8,8 +9,10 @@ export function groupProjects<T extends { status: ProjectStatus }>(list: T[]) {
     .filter((g) => g.items.length > 0);
 }
 
-type YarnRef = { id: string; name: string } | null;
-export type YarnLine = { yarnId: string; name: string; used: number; planned: number | null };
+type YarnRef = { id: string; name: string; color: string | null; color_families: ColourFamily[] } | null;
+export type YarnLine = {
+  yarnId: string; name: string; color: string | null; families: ColourFamily[]; used: number; planned: number | null;
+};
 
 export function projectYarnLines(
   parts: { part_yarns: { id: string; skeins_used: number; yarn: YarnRef }[] }[],
@@ -17,7 +20,7 @@ export function projectYarnLines(
 ): YarnLine[] {
   const lines = new Map<string, YarnLine>();
   const line = (y: NonNullable<YarnRef>) => {
-    if (!lines.has(y.id)) lines.set(y.id, { yarnId: y.id, name: y.name, used: 0, planned: null });
+    if (!lines.has(y.id)) lines.set(y.id, { yarnId: y.id, name: y.name, color: y.color, families: y.color_families, used: 0, planned: null });
     return lines.get(y.id)!;
   };
   for (const p of plans) if (p.yarn) line(p.yarn).planned = Number(p.skeins_planned);

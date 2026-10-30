@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import NumberField from '../../components/NumberField';
+import { yarnLabel } from '../stash/logic';
 
 type Props = {
-  yarns: { id: string; name: string }[];
+  yarns: { id: string; name: string; color?: string | null }[];
   onSave: (u: { yarnId: string; skeins: number }) => void;
   onCancel: () => void;
 };
@@ -22,7 +23,7 @@ export default function YarnUsageForm({ yarns, onSave, onCancel }: Props) {
         <select required value={yarnId} onChange={(e) => setYarnId(e.target.value)}
           className="h-11 rounded-xl border border-line px-2 text-ink">
           <option value="">Choose…</option>
-          {yarns.map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}
+          {yarns.map((y) => <option key={y.id} value={y.id}>{yarnLabel(y)}</option>)}
         </select>
       </label>
       <label className="flex w-24 flex-col gap-1 text-sm text-muted">Skeins used

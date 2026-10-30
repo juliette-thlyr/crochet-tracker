@@ -11,12 +11,12 @@ const removeYarn = vi.fn();
 const fixture = {
   id: 'pt1', name: 'Leg 1', project_id: 'pr1', position: 1, done: false, current_row: 12, total_rows: 18,
   pattern_part_id: 'pp1', resume_note: 'After the 2nd increase round', notes: null,
-  project: { id: 'pr1', name: 'T-rex for Léo' },
+  project: { id: 'pr1', name: 'T-rex for Léo', pattern: { pdf_path: 'u/t-rex.pdf' } },
   time_sessions: [
     { id: 's1', started_at: '2026-09-23T21:05:00Z', ended_at: '2026-09-23T21:30:00Z' },
     { id: 's2', started_at: '2026-09-22T20:00:00Z', ended_at: '2026-09-22T20:10:00Z' },
   ],
-  part_yarns: [{ id: 'u1', skeins_used: 0.15, yarn: { id: 'y1', name: 'Fern green', brand: 'Drops Paris' } }],
+  part_yarns: [{ id: 'u1', skeins_used: 0.15, yarn: { id: 'y1', name: 'Fern green', brand: 'Drops Paris', color: 'Sage', color_families: ['green'] } }],
 };
 vi.mock('./api', () => ({
   // The real query cache, so optimistic row patches re-render the page like in the app.
@@ -45,6 +45,7 @@ vi.mock('../instructions/InstructionsSection', () => ({
   default: ({ patternPartId }: { patternPartId: string }) => <div data-testid="instructions">{patternPartId}</div>,
 }));
 vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [] }) }));
+vi.mock('../../lib/storage', () => ({ useSignedUrl: (_b: string, path: string | null) => (path ? 'https://files.test/t-rex.pdf' : undefined) }));
 
 test('shows the counter, resume note, time and yarn', () => {
   renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
@@ -118,4 +119,10 @@ test('the part page has the timer and the instructions of its pattern part', () 
   renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
   expect(screen.getByTestId('timer')).toHaveTextContent('pt1');
   expect(screen.getByTestId('instructions')).toHaveTextContent('pp1');
+});
+
+test('links the whole pattern PDF and shows the yarn colour', () => {
+  renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
+  expect(screen.getByRole('link', { name: /Open pattern PDF/ })).toHaveAttribute('href', 'https://files.test/t-rex.pdf');
+  expect(screen.getByText(/Fern green · Sage · Drops Paris/)).toBeInTheDocument();
 });

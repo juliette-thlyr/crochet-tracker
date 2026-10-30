@@ -13,8 +13,8 @@ test('groupProjects orders groups and omits empty ones', () => {
 });
 
 test('projectYarnLines adds usage across parts and joins plans', () => {
-  const fern = { id: 'y1', name: 'Fern green' };
-  const cream = { id: 'y2', name: 'Cream' };
+  const fern = { id: 'y1', name: 'Fern green', color: 'Sage', color_families: ['green' as const] };
+  const cream = { id: 'y2', name: 'Cream', color: null, color_families: [] };
   const lines = projectYarnLines(
     [
       { part_yarns: [{ id: 'u1', skeins_used: 0.6, yarn: fern }] },
@@ -23,7 +23,7 @@ test('projectYarnLines adds usage across parts and joins plans', () => {
     [{ id: 'pl1', skeins_planned: 2, yarn: fern }],
   );
   expect(lines).toEqual([
-    { yarnId: 'y1', name: 'Fern green', used: 1.1, planned: 2 },
-    { yarnId: 'y2', name: 'Cream', used: 0.2, planned: null },
+    { yarnId: 'y1', name: 'Fern green', color: 'Sage', families: ['green'], used: 1.1, planned: 2 },
+    { yarnId: 'y2', name: 'Cream', color: null, families: [], used: 0.2, planned: null },
   ]);
 });

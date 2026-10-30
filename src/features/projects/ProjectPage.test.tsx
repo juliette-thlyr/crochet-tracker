@@ -15,12 +15,12 @@ vi.mock('./api', () => ({
   useProject: () => ({
     data: {
       id: 'pr1', name: 'T-rex for Léo', status: 'in_progress', start_date: '2026-09-12', finish_date: null,
-      hook_size_mm: 4, notes: null, pattern: { id: 'pa1', name: 'T-rex', hook_size_mm: 3.5 },
+      hook_size_mm: 4, notes: null, pattern: { id: 'pa1', name: 'T-rex', hook_size_mm: 3.5, pdf_path: 'u/t-rex.pdf' },
       parts: [
         part('a', 'Head', 0, { done: true, current_row: 24, total_rows: 24 }),
         part('b', 'Leg 1', 2, { current_row: 12, total_rows: 18, resume_note: 'after 2nd increase' }),
       ],
-      project_yarns: [{ id: 'pl1', skeins_planned: 2, yarn: { id: 'y1', name: 'Fern green' } }], project_photos: [],
+      project_yarns: [{ id: 'pl1', skeins_planned: 2, yarn: { id: 'y1', name: 'Fern green', color: 'Sage', color_families: ['green'] } }], project_photos: [],
     },
     isPending: false, error: null, refetch: vi.fn(),
   }),
@@ -35,9 +35,9 @@ vi.mock('./api', () => ({
   useDeleteProject: () => ({ mutate: vi.fn() }),
 }));
 vi.mock('./UpdateFromPattern', () => ({ default: () => <p>update panel</p> }));
-vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [] }) }));
+vi.mock('../stash/api', () => ({ useYarns: () => ({ data: [{ id: 'y2', name: 'Honey Bunny', color: 'Teal', free: 3 }] }) }));
 vi.mock('../timer/StartTimerButton', () => ({ default: () => null }));
-vi.mock('../../lib/storage', () => ({ useSignedUrl: () => undefined }));
+vi.mock('../../lib/storage', () => ({ useSignedUrl: (bucket: string, path: string | null) => (bucket === 'pattern-pdfs' && path ? 'https://files.test/t-rex.pdf' : undefined) }));
 
 test('shows parts with rows, resume notes and progress', () => {
   renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
@@ -92,4 +92,12 @@ test('"Update from pattern" opens the update panel', async () => {
   renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
   await userEvent.click(screen.getByRole('button', { name: 'Update from pattern' }));
   expect(screen.getByText('update panel')).toBeInTheDocument();
+});
+
+test('shows the yarn colour in the plan list and the yarn lines, and links the pattern PDF', async () => {
+  renderWithProviders(<ProjectPage />, { route: '/projects/pr1', path: '/projects/:id' });
+  expect(screen.getByRole('link', { name: /Fern green/ })).toHaveTextContent('Fern green · Sage');
+  await userEvent.click(screen.getByRole('button', { name: 'Plan yarn' }));
+  expect(screen.getByRole('option', { name: 'Honey Bunny · Teal' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: /Open pattern PDF/ })).toHaveAttribute('href', 'https://files.test/t-rex.pdf');
 });

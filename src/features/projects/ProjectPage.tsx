@@ -6,6 +6,9 @@ import { formatDuration, formatHook, formatSkeins, hookLabel, hookSizeOptions, r
 import { STATUS_LABELS, type ProjectStatus } from '../../lib/labels';
 import { useSignedUrl } from '../../lib/storage';
 import { useYarns } from '../stash/api';
+import { yarnLabel } from '../stash/logic';
+import ColourSwatches from '../../components/ColourSwatches';
+import PatternPdfLink from '../patterns/PatternPdfLink';
 import StartTimerButton from '../timer/StartTimerButton';
 import {
   useAddPart, useAddProjectPhoto, useDeletePart, useDeleteProject, useMovePart, usePlanYarn, useProject,
@@ -91,6 +94,7 @@ export default function ProjectPage() {
           </label>
         </div>
       </div>
+      <PatternPdfLink path={p.pattern?.pdf_path} />
 
       <div className="flex flex-wrap gap-2">
         <label className="relative flex min-h-11 items-center rounded-full bg-stash-soft px-3 py-1 text-sm text-stash-dark">
@@ -167,7 +171,8 @@ export default function ProjectPage() {
         {lines.map((l) => (
           <div key={l.yarnId} className="flex items-start gap-1 rounded-xl border border-line bg-surface p-2.5 text-sm">
             <Link to={`/stash/${l.yarnId}`} className="min-h-11 flex-1">
-              {l.name}<br />{l.used} / {l.planned ?? '—'}
+              <span className="flex items-center gap-1.5"><ColourSwatches families={l.families} />{yarnLabel(l)}</span>
+              {l.used} / {l.planned ?? '—'}
             </Link>
             {l.planned !== null && (
               <button type="button" aria-label={`Remove plan for ${l.name}`}
@@ -183,7 +188,7 @@ export default function ProjectPage() {
             <select value={plan.yarnId} onChange={(e) => setPlan({ ...plan, yarnId: e.target.value })}
               className="h-11 rounded-xl border border-line px-2 text-ink">
               <option value="">Choose…</option>
-              {(yarns.data ?? []).map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}
+              {(yarns.data ?? []).map((y) => <option key={y.id} value={y.id}>{yarnLabel(y)}</option>)}
             </select>
           </label>
           <label className="flex w-24 flex-col gap-1 text-sm text-muted">Skeins
