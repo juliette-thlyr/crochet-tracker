@@ -124,5 +124,6 @@ test('the part page has the timer and the instructions of its pattern part', () 
 test('links the whole pattern PDF and shows the yarn colour', () => {
   renderWithProviders(<PartPage />, { route: '/parts/pt1', path: '/parts/:id' });
   expect(screen.getByRole('link', { name: /Open pattern PDF/ })).toHaveAttribute('href', 'https://files.test/t-rex.pdf');
-  expect(screen.getByText(/Fern green · Sage · Drops Paris/)).toBeInTheDocument();
+  expect(screen.getByText('Fern green · Sage')).toBeInTheDocument();
+  expect(screen.queryByText(/Drops Paris/)).toBeNull();
 });

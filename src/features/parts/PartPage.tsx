@@ -145,7 +145,7 @@ export default function PartPage() {
         <div key={u.id} className="flex items-center gap-2.5 rounded-2xl border border-line bg-surface px-3.5 py-2">
           <span className="flex flex-1 items-center gap-1.5">
             <ColourSwatches families={u.yarn?.color_families ?? []} />
-            {[u.yarn?.name, u.yarn?.color, u.yarn?.brand].filter(Boolean).join(' · ')}
+            {[u.yarn?.name, u.yarn?.color].filter(Boolean).join(' · ')}
           </span>
           <span>{formatSkeins(Number(u.skeins_used))}</span>
           <button type="button" aria-label={`Remove ${u.yarn?.name}`} onClick={() => setConfirming({ kind: 'yarn', id: u.id, name: u.yarn?.name ?? 'yarn' })} className="h-11 w-11 text-muted">×</button>
